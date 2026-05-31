@@ -28,6 +28,22 @@ export default async function handler(req, res) {
 
   const { id } = req.query
 
+  if (req.method === 'GET') {
+    const dealRows = await sql`
+      SELECT deals.*, schools.name as school_name, contacts.name as contact_name
+      FROM deals
+      LEFT JOIN schools ON deals.school_id = schools.id
+      LEFT JOIN contacts ON deals.contact_id = contacts.id
+      WHERE deals.id = ${id}
+    `
+
+    if (dealRows.length === 0) {
+      return res.status(404).json({ error: 'Deal not found' })
+    }
+
+    return res.status(200).json(dealRows[0])
+  }
+
   if (req.method === 'PATCH') {
     const body = await readBody(req)
     const hasStage = Object.prototype.hasOwnProperty.call(body, 'stage')
@@ -35,8 +51,9 @@ export default async function handler(req, res) {
     const hasValue = Object.prototype.hasOwnProperty.call(body, 'value')
     const hasCloseDate = Object.prototype.hasOwnProperty.call(body, 'close_date')
     const hasNotes = Object.prototype.hasOwnProperty.call(body, 'notes')
+    const hasProbability = Object.prototype.hasOwnProperty.call(body, 'probability')
 
-    if (!hasStage && !hasTitle && !hasValue && !hasCloseDate && !hasNotes) {
+    if (!hasStage && !hasTitle && !hasValue && !hasCloseDate && !hasNotes && !hasProbability) {
       return res.status(400).json({ error: 'No fields provided' })
     }
 
@@ -47,7 +64,8 @@ export default async function handler(req, res) {
         title = CASE WHEN ${hasTitle} THEN ${hasTitle ? body.title : null} ELSE title END,
         value = CASE WHEN ${hasValue} THEN ${hasValue && body.value !== '' ? body.value : null} ELSE value END,
         close_date = CASE WHEN ${hasCloseDate} THEN ${hasCloseDate && body.close_date ? body.close_date : null} ELSE close_date END,
-        notes = CASE WHEN ${hasNotes} THEN ${hasNotes ? body.notes : null} ELSE notes END
+        notes = CASE WHEN ${hasNotes} THEN ${hasNotes ? body.notes : null} ELSE notes END,
+        probability = CASE WHEN ${hasProbability} THEN ${hasProbability && body.probability !== '' ? body.probability : null} ELSE probability END
       WHERE id = ${id}
       RETURNING *
     `
@@ -73,6 +91,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ id: deletedRows[0].id })
   }
 
-  res.setHeader('Allow', 'PATCH, DELETE')
+  res.setHeader('Allow', 'GET, PATCH, DELETE')
   return res.status(405).json({ error: 'Method not allowed' })
 }

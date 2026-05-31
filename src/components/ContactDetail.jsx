@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react'
-import { statusBadgeClasses } from './ContactList.jsx'
 
 const statuses = ['New', 'Emailed', 'Called', 'Responded', 'Closed']
 const assignees = ['Email', 'Calls', 'DMs']
-const activityIcons = {
-  call: '☎',
-  email: '✉',
-  dm: '@',
+const activityTypeClasses = {
+  call: 'bg-amber-100 text-amber-700',
+  email: 'bg-blue-100 text-blue-700',
+  dm: 'bg-purple-100 text-purple-700',
 }
 
 const stageBadgeClasses = {
@@ -33,14 +32,44 @@ function activityTypeForPayload(type) {
   return type.toLowerCase()
 }
 
+function formatRelativeTime(value) {
+  const timestamp = new Date(value).getTime()
+
+  if (Number.isNaN(timestamp)) {
+    return 'just now'
+  }
+
+  const seconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000))
+  const intervals = [
+    { label: 'y', seconds: 31536000 },
+    { label: 'mo', seconds: 2592000 },
+    { label: 'w', seconds: 604800 },
+    { label: 'd', seconds: 86400 },
+    { label: 'h', seconds: 3600 },
+    { label: 'm', seconds: 60 },
+  ]
+
+  for (const interval of intervals) {
+    const count = Math.floor(seconds / interval.seconds)
+    if (count >= 1) {
+      return `${count}${interval.label} ago`
+    }
+  }
+
+  return 'just now'
+}
+
 export default function ContactDetail({ contact, onClose, onContactUpdated }) {
   const [notes, setNotes] = useState(contact.notes || '')
   const [originalNotes, setOriginalNotes] = useState(contact.notes || '')
   const [status, setStatus] = useState(contact.status || 'New')
   const [assignedTo, setAssignedTo] = useState(contact.assigned_to || '')
   const [activities, setActivities] = useState([])
+  const [activityType, setActivityType] = useState('call')
+  const [activityNotes, setActivityNotes] = useState('')
   const [deals, setDeals] = useState([])
   const [isSaving, setIsSaving] = useState(false)
+  const [isLoggingActivity, setIsLoggingActivity] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -50,6 +79,8 @@ export default function ContactDetail({ contact, onClose, onContactUpdated }) {
     setStatus(contact.status || 'New')
     setAssignedTo(contact.assigned_to || '')
     setActivities([])
+    setActivityType('call')
+    setActivityNotes('')
     setDeals([])
 
     async function loadContactPanels() {
@@ -80,10 +111,13 @@ export default function ContactDetail({ contact, onClose, onContactUpdated }) {
       body: JSON.stringify({ contact_id: contact.id, type: activityTypeForPayload(type), notes: activityNotes }),
     })
 
-    if (response.ok) {
-      const activity = await response.json()
-      setActivities((current) => [activity, ...current].slice(0, 5))
+    if (!response.ok) {
+      return null
     }
+
+    const activity = await response.json()
+    setActivities((current) => [activity, ...current])
+    return activity
   }
 
   async function patchContact(payload) {
@@ -129,6 +163,27 @@ export default function ContactDetail({ contact, onClose, onContactUpdated }) {
     }
   }
 
+  async function handleActivitySubmit(event) {
+    event.preventDefault()
+
+    const trimmedNotes = activityNotes.trim()
+
+    if (!trimmedNotes) {
+      return
+    }
+
+    setIsLoggingActivity(true)
+
+    try {
+      const activity = await logActivity(activityType, trimmedNotes)
+      if (activity) {
+        setActivityNotes('')
+      }
+    } finally {
+      setIsLoggingActivity(false)
+    }
+  }
+
   async function handleNotesBlur() {
     if (notes === originalNotes) {
       return
@@ -139,7 +194,6 @@ export default function ContactDetail({ contact, onClose, onContactUpdated }) {
     try {
       await patchContact({ notes })
       setOriginalNotes(notes)
-      await logActivity('notes', 'Updated contact notes')
     } catch {
       setNotes(previousNotes)
     }
@@ -238,6 +292,58 @@ export default function ContactDetail({ contact, onClose, onContactUpdated }) {
       </section>
 
       <section className="border-b border-gray-100 py-4">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-gray-900">Activity</h3>
+          {isSaving ? <span className="text-xs text-gray-500">Saving...</span> : null}
+        </div>
+
+        {activities.length === 0 ? (
+          <p className="text-sm italic text-gray-500">No activity logged yet.</p>
+        ) : (
+          <div className="ml-2 space-y-4 border-l border-gray-200 pl-4">
+            {activities.map((activity) => (
+              <div key={activity.id} className="relative text-sm">
+                <span className="absolute -left-[23px] top-1.5 h-3 w-3 rounded-full border-2 border-white bg-gray-400 ring-1 ring-gray-200" />
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={`rounded px-2 py-0.5 text-xs font-medium uppercase ${activityTypeClasses[activity.type] || 'bg-gray-100 text-gray-700'}`}>
+                    {activity.type}
+                  </span>
+                  <span className="text-xs text-gray-500">{formatRelativeTime(activity.created_at)}</span>
+                </div>
+                <p className="mt-1 text-gray-900">{activity.notes || '—'}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <form onSubmit={handleActivitySubmit} className="mt-4 flex gap-2">
+          <select
+            value={activityType}
+            onChange={(event) => setActivityType(event.target.value)}
+            className="rounded border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-900 outline-none"
+          >
+            <option value="call">Call</option>
+            <option value="email">Email</option>
+            <option value="dm">DM</option>
+          </select>
+          <input
+            type="text"
+            value={activityNotes}
+            onChange={(event) => setActivityNotes(event.target.value)}
+            placeholder="Add notes..."
+            className="min-w-0 flex-1 rounded border border-gray-300 px-3 py-1.5 text-sm text-gray-900 outline-none"
+          />
+          <button
+            type="submit"
+            disabled={isLoggingActivity || !activityNotes.trim()}
+            className="rounded bg-gray-900 px-3 py-1.5 text-sm text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isLoggingActivity ? 'Logging...' : 'Log'}
+          </button>
+        </form>
+      </section>
+
+      <section className="py-4">
         <h3 className="mb-3 text-sm font-semibold text-gray-900">Deals</h3>
         <div className="space-y-2">
           {deals.length === 0 ? (
@@ -250,28 +356,6 @@ export default function ContactDetail({ contact, onClose, onContactUpdated }) {
                   <div className="text-sm text-gray-900">{formatCurrency(deal.value)}</div>
                 </div>
                 <span className={`mt-2 inline-block rounded px-2 py-0.5 text-xs font-medium ${stageBadgeClasses[deal.stage] || stageBadgeClasses.Prospecting}`}>{deal.stage}</span>
-              </div>
-            ))
-          )}
-        </div>
-      </section>
-
-      <section className="py-4">
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-gray-900">Activity</h3>
-          {isSaving ? <span className="text-xs text-gray-500">Saving...</span> : null}
-        </div>
-        <div className="space-y-2">
-          {activities.length === 0 ? (
-            <p className="text-sm text-gray-500">No activity yet.</p>
-          ) : (
-            activities.slice(0, 5).map((activity) => (
-              <div key={activity.id} className="rounded border border-gray-200 p-2">
-                <div className="flex items-center gap-2 text-sm text-gray-900">
-                  <span>{activityIcons[activity.type] || '•'}</span>
-                  <span>{activity.notes || activity.type}</span>
-                </div>
-                <p className="mt-1 text-xs text-gray-500">{new Date(activity.created_at).toLocaleString()}</p>
               </div>
             ))
           )}

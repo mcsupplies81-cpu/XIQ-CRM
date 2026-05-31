@@ -1,5 +1,5 @@
 import { getUserId, getUserDisplayName } from './_auth.js'
-import { sql } from './db.js'
+import { sql } from './_db.js'
 
 async function readBody(req) {
   if (typeof req.body === 'string') {
@@ -27,7 +27,23 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'GET') {
-    const { contact_id } = req.query
+    const { contact_id, today } = req.query
+
+    if (today) {
+      const rows = await sql`
+        SELECT contact_id, type
+        FROM activities
+        WHERE created_at >= CURRENT_DATE AND type IN ('dm', 'call')
+      `
+      const contactIdsDmedToday = new Set()
+      let dmCount = 0
+      let callCount = 0
+      rows.forEach((row) => {
+        if (row.type === 'dm') { dmCount += 1; contactIdsDmedToday.add(String(row.contact_id)) }
+        if (row.type === 'call') callCount += 1
+      })
+      return res.status(200).json({ dm_count: dmCount, call_count: callCount, contact_ids_dmed_today: Array.from(contactIdsDmedToday) })
+    }
 
     if (!contact_id) {
       return res.status(400).json({ error: 'contact_id is required' })

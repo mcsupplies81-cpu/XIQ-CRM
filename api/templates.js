@@ -1,5 +1,5 @@
 import { getUserId } from './_auth.js'
-import { sql } from './db.js'
+import { sql } from './_db.js'
 
 async function readBody(req) {
   if (typeof req.body === 'string') {

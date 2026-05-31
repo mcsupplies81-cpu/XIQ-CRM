@@ -146,7 +146,7 @@ export default function CallQueue() {
       try {
         const [contactsResponse, todayResponse] = await Promise.all([
           fetch('/api/contacts'),
-          fetch('/api/activities/today'),
+          fetch('/api/activities?today=1'),
         ])
         const data = contactsResponse.ok ? await contactsResponse.json() : []
         const todayData = todayResponse.ok ? await todayResponse.json() : {}

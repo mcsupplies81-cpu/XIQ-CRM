@@ -84,7 +84,7 @@ export default function DMQueue() {
       try {
         const [contactsResponse, todayResponse, templatesResponse] = await Promise.all([
           fetch('/api/contacts'),
-          fetch('/api/activities/today'),
+          fetch('/api/activities?today=1'),
           fetch('/api/templates'),
         ])
 

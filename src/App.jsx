@@ -12,7 +12,6 @@ import ImportPage from './components/ImportPage.jsx'
 import Dashboard from './components/Dashboard.jsx'
 import TemplatesPage from './components/TemplatesPage.jsx'
 import DMQueue from './components/DMQueue.jsx'
-import AIAssistant from './components/AIAssistant.jsx'
 import CommandPalette from './components/CommandPalette.jsx'
 
 export default function App() {
@@ -58,7 +57,6 @@ export default function App() {
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </main>
-      <AIAssistant />
       <CommandPalette />
     </div>
   )

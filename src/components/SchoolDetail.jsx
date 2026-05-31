@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { statusBadgeClasses } from './ContactList.jsx'
+import StatusDot from './StatusDot.jsx'
 
 const stageBadgeClasses = {
   Prospecting: 'bg-gray-100 text-gray-700',
@@ -112,7 +112,7 @@ export default function SchoolDetail({ schoolId, onClose }) {
                     <tr key={contact.id} className="h-10 border-b border-gray-100">
                       <td className="px-2 py-2 text-sm font-medium text-gray-900">{contact.name}</td>
                       <td className="px-2 py-2"><span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">{contact.role || '—'}</span></td>
-                      <td className="px-2 py-2"><span className={`rounded px-2 py-0.5 text-xs font-medium ${statusBadgeClasses[contact.status || 'New'] || statusBadgeClasses.New}`}>{contact.status || 'New'}</span></td>
+                      <td className="px-2 py-2"><StatusDot status={contact.status} /></td>
                       <td className="px-2 py-2 text-sm text-gray-500">{contact.phone || '—'}</td>
                       <td className="px-2 py-2 text-sm text-gray-500">{contact.email || '—'}</td>
                     </tr>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import StatusDot from './StatusDot.jsx'
 
 const statuses = ['New', 'Emailed', 'Called', 'Responded', 'Closed']
 
@@ -11,13 +12,6 @@ const statusBarClasses = {
   Closed: 'bg-green-500',
 }
 
-const statusDotClasses = {
-  New: 'bg-gray-400',
-  Emailed: 'bg-blue-500',
-  Called: 'bg-amber-500',
-  Responded: 'bg-purple-500',
-  Closed: 'bg-green-500',
-}
 
 const typeBadgeClasses = {
   call: 'bg-amber-100 text-amber-700',
@@ -197,6 +191,9 @@ export default function Dashboard() {
                     <div>
                       <p className="text-sm font-semibold text-gray-900">{contact.name}</p>
                       <p className="mt-1 text-sm text-gray-500">{contact.school_name || '—'}</p>
+                      <div className="mt-2">
+                        <StatusDot status={contact.status} />
+                      </div>
                     </div>
                     <div className="text-right text-xs text-gray-500">
                       <p className="font-medium text-red-600">{formatDaysAgo(contact.follow_up_at)}</p>
@@ -262,8 +259,7 @@ export default function Dashboard() {
         <div className="mt-4 grid gap-3 sm:grid-cols-5">
           {statuses.map((status) => (
             <div key={status} className="flex items-center gap-2 text-sm text-gray-600">
-              <span className={`h-3 w-3 rounded-sm ${statusDotClasses[status]}`} />
-              <span className="font-medium text-gray-700">{status}</span>
+              <StatusDot status={status} />
               <span>{contactsByStatus[status] || 0}</span>
             </div>
           ))}

@@ -1,12 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-
-const statusBadgeClasses = {
-  New: 'bg-gray-100 text-gray-700',
-  Emailed: 'bg-blue-100 text-blue-700',
-  Called: 'bg-amber-100 text-amber-700',
-  Responded: 'bg-purple-100 text-purple-700',
-  Closed: 'bg-green-100 text-green-700',
-}
+import StatusDot from './StatusDot.jsx'
 
 const statusOrder = {
   New: 0,
@@ -342,9 +335,7 @@ export default function CallQueue() {
                       </div>
                       <div className="flex shrink-0 flex-wrap justify-end gap-1">
                         <span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">{contact.role || '—'}</span>
-                        <span className={`rounded px-2 py-0.5 text-xs font-medium ${statusBadgeClasses[contact.status || 'New'] || statusBadgeClasses.New}`}>
-                          {contact.status || 'New'}
-                        </span>
+                        <StatusDot status={contact.status} />
                       </div>
                     </div>
                     <div className="flex items-center justify-between gap-3 text-sm">

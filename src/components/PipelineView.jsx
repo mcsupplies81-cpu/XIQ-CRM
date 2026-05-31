@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { DndContext, useDroppable } from '@dnd-kit/core'
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { statusBadgeClasses } from './ContactList.jsx'
+import StatusDot from './StatusDot.jsx'
 
 const statuses = ['New', 'Emailed', 'Called', 'Responded', 'Closed']
 
@@ -34,7 +34,7 @@ function PipelineColumn({ status, contacts }) {
   return (
     <section ref={setNodeRef} className="min-h-[500px] w-56 shrink-0 rounded-md border border-gray-200 bg-white p-3">
       <div className="mb-3 flex items-center justify-between gap-3">
-        <span className={`rounded px-2 py-0.5 text-xs font-medium ${statusBadgeClasses[status]}`}>{status}</span>
+        <StatusDot status={status} />
         <span className="text-xs text-gray-500">{contacts.length}</span>
       </div>
       <SortableContext items={contacts.map((contact) => String(contact.id))} strategy={verticalListSortingStrategy}>

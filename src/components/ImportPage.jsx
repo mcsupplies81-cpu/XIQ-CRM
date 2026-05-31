@@ -89,7 +89,7 @@ export default function ImportPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-white p-6">
       <div className="mb-5">
         <h1 className="text-2xl font-semibold text-gray-900">Import</h1>
       </div>

@@ -19,7 +19,7 @@ export default function App() {
   const location = useLocation()
 
   if (!isLoaded) {
-    return <div className="flex min-h-screen items-center justify-center bg-gray-50 text-sm text-gray-500">Loading XIQ...</div>
+    return <div className="flex min-h-screen items-center justify-center bg-white text-sm text-gray-500">Loading XIQ...</div>
   }
 
   if (!isSignedIn && location.pathname !== '/login') {
@@ -40,7 +40,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50 pb-14 md:pb-0">
+    <div className="flex min-h-screen bg-white pb-14 md:pb-0">
       <Sidebar />
       <main className="min-w-0 flex-1">
         <Routes>

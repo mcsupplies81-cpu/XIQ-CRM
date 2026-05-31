@@ -242,7 +242,7 @@ export default function DealsView() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-white">
       <section className="min-w-0 flex-1 p-6">
         <div className="mb-5 flex items-center justify-between gap-4">
           <h1 className="text-2xl font-semibold text-gray-900">Deals</h1>

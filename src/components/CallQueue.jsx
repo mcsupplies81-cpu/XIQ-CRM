@@ -297,7 +297,7 @@ export default function CallQueue() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-white">
       <section className="min-w-0 flex-1 p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-semibold text-gray-900">Call Queue</h1>

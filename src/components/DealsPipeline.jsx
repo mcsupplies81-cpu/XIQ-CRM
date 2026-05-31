@@ -210,7 +210,7 @@ export default function DealsPipeline() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-white p-6">
       <div className="mb-5">
         <h1 className="text-2xl font-semibold text-gray-900">Deals Board</h1>
         <p className="mt-1 text-sm text-gray-500">Track deal stages, pipeline value, and weighted forecast.</p>

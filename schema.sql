@@ -4,6 +4,7 @@ create table if not exists schools (
   city text,
   state text,
   division text,
+  level text,
   rank integer,
   maxpreps_url text,
   created_at timestamp default now()

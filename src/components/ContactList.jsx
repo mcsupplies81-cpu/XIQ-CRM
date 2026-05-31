@@ -12,8 +12,8 @@ export const statusBadgeClasses = {
   Closed: 'bg-green-100 text-green-700',
 }
 
-const activePill = 'border-gray-900 bg-gray-900 text-white rounded-full px-4 py-2 text-sm border'
-const inactivePill = 'border-gray-300 bg-white text-gray-700 rounded-full border px-4 py-2 text-sm'
+const activePill = 'rounded border border-gray-900 bg-gray-900 px-2.5 py-1 text-xs font-medium text-white transition-colors'
+const inactivePill = 'rounded border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50'
 
 function addSchool(contact) {
   return {
@@ -81,81 +81,75 @@ export default function ContactList() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-white lg:flex-row">
+    <div className="flex min-h-screen bg-gray-50">
       <section className="min-w-0 flex-1 p-6">
-        <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Contacts</h1>
-            <p className="mt-1 text-sm text-gray-600">Search, filter, and manage your outreach list.</p>
-          </div>
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <h1 className="text-2xl font-semibold text-gray-900">Contacts</h1>
           <input
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search contacts or schools"
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none lg:max-w-sm"
+            className="w-80 rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none"
           />
         </div>
 
-        <div className="mb-6 flex flex-col gap-3">
-          <div className="flex flex-wrap gap-2">
-            {roles.map((role) => (
-              <button
-                key={role}
-                type="button"
-                onClick={() => setSelectedRoles((current) => toggleValue(current, role))}
-                className={selectedRoles.includes(role) ? activePill : inactivePill}
-              >
-                {role}
-              </button>
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {assignees.map((assignee) => (
-              <button
-                key={assignee}
-                type="button"
-                onClick={() => setSelectedAssignees((current) => toggleValue(current, assignee))}
-                className={selectedAssignees.includes(assignee) ? activePill : inactivePill}
-              >
-                {assignee}
-              </button>
-            ))}
-          </div>
+        <div className="mb-4 flex flex-wrap gap-2">
+          {roles.map((role) => (
+            <button
+              key={role}
+              type="button"
+              onClick={() => setSelectedRoles((current) => toggleValue(current, role))}
+              className={selectedRoles.includes(role) ? activePill : inactivePill}
+            >
+              {role}
+            </button>
+          ))}
+          <span className="mx-1 h-6 border-l border-gray-200" />
+          {assignees.map((assignee) => (
+            <button
+              key={assignee}
+              type="button"
+              onClick={() => setSelectedAssignees((current) => toggleValue(current, assignee))}
+              className={selectedAssignees.includes(assignee) ? activePill : inactivePill}
+            >
+              {assignee}
+            </button>
+          ))}
         </div>
 
-        <div className="overflow-x-auto border border-gray-200">
-          <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
-            <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-600">
-              <tr>
-                <th className="px-4 py-3 font-medium">Name</th>
-                <th className="px-4 py-3 font-medium">School</th>
-                <th className="px-4 py-3 font-medium">Role</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Assigned To</th>
+        <div className="overflow-hidden rounded-md border border-gray-200 bg-white">
+          <table className="min-w-full text-left">
+            <thead className="border-b border-gray-200 bg-gray-50 text-xs font-medium uppercase tracking-wide text-gray-500">
+              <tr className="h-9">
+                <th className="px-3 py-2 font-medium">Name</th>
+                <th className="px-3 py-2 font-medium">School</th>
+                <th className="px-3 py-2 font-medium">Role</th>
+                <th className="px-3 py-2 font-medium">Status</th>
+                <th className="px-3 py-2 font-medium">Assigned To</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
+            <tbody className="bg-white">
               {loading ? (
-                <tr>
-                  <td colSpan="5" className="px-4 py-8 text-center text-gray-600">Loading contacts...</td>
+                <tr className="h-10 border-b border-gray-100">
+                  <td colSpan="5" className="px-3 py-2 text-center text-sm text-gray-500">Loading contacts...</td>
                 </tr>
               ) : filteredContacts.length === 0 ? (
-                <tr>
-                  <td colSpan="5" className="px-4 py-8 text-center text-gray-600">No contacts found.</td>
+                <tr className="h-10 border-b border-gray-100">
+                  <td colSpan="5" className="px-3 py-2 text-center text-sm text-gray-500">No contacts found.</td>
                 </tr>
               ) : (
                 filteredContacts.map((contact) => (
-                  <tr key={contact.id} onClick={() => setSelectedContact(contact)} className="cursor-pointer bg-white">
-                    <td className="whitespace-nowrap px-4 py-4 font-medium text-gray-900">{contact.name}</td>
-                    <td className="whitespace-nowrap px-4 py-4 text-gray-700">{contact.school_name}</td>
-                    <td className="whitespace-nowrap px-4 py-4 text-gray-700">{contact.role}</td>
-                    <td className="whitespace-nowrap px-4 py-4">
-                      <span className={`rounded-full px-3 py-1 text-xs font-medium ${statusBadgeClasses[contact.status] || statusBadgeClasses.New}`}>
-                        {contact.status || 'New'}
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-4 text-gray-700">{contact.assigned_to || 'Unassigned'}</td>
+                  <tr
+                    key={contact.id}
+                    onClick={() => setSelectedContact(contact)}
+                    className={`h-10 cursor-pointer border-b border-gray-100 transition-colors hover:bg-gray-50 ${selectedContact?.id === contact.id ? 'bg-blue-50' : ''}`}
+                  >
+                    <td className="px-3 py-2 text-sm font-medium text-gray-900">{contact.name}</td>
+                    <td className="px-3 py-2 text-sm text-gray-500">{contact.school_name || '—'}</td>
+                    <td className="px-3 py-2"><span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">{contact.role || '—'}</span></td>
+                    <td className="px-3 py-2"><span className={`rounded px-2 py-0.5 text-xs font-medium ${statusBadgeClasses[contact.status || 'New'] || statusBadgeClasses.New}`}>{contact.status || 'New'}</span></td>
+                    <td className="px-3 py-2 text-sm text-gray-500">{contact.assigned_to || 'Unassigned'}</td>
                   </tr>
                 ))
               )}
@@ -165,11 +159,7 @@ export default function ContactList() {
       </section>
 
       {selectedContact ? (
-        <ContactDetail
-          contact={selectedContact}
-          onClose={() => setSelectedContact(null)}
-          onContactUpdated={handleContactUpdated}
-        />
+        <ContactDetail contact={selectedContact} onClose={() => setSelectedContact(null)} onContactUpdated={handleContactUpdated} />
       ) : null}
     </div>
   )

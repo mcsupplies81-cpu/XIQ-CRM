@@ -2,25 +2,28 @@ import { useClerk } from '@clerk/clerk-react'
 import { NavLink } from 'react-router-dom'
 
 const navItems = [
-  { to: '/contacts', label: 'Contacts' },
-  { to: '/pipeline', label: 'Pipeline' },
-  { to: '/import', label: 'Import' },
+  { to: '/schools', label: 'Schools', indicator: 'bg-emerald-400' },
+  { to: '/contacts', label: 'Contacts', indicator: 'bg-blue-400' },
+  { to: '/deals', label: 'Deals', indicator: 'bg-violet-400' },
+  { to: '/pipeline', label: 'Pipeline', indicator: 'bg-amber-400' },
+  { to: '/import', label: 'Import', indicator: 'bg-gray-400' },
 ]
 
-const activeClass = 'bg-white text-[#1a1a2e] rounded-lg px-4 py-3 text-sm font-medium'
-const inactiveClass = 'text-white rounded-lg px-4 py-3 text-sm font-medium'
+const activeClass = 'bg-white/10 text-white font-medium rounded px-3 py-2 text-sm flex items-center gap-2.5 transition-colors'
+const inactiveClass = 'text-white/60 hover:text-white hover:bg-white/5 rounded px-3 py-2 text-sm flex items-center gap-2.5 transition-colors'
 
 export default function Sidebar() {
   const { signOut } = useClerk()
 
   return (
-    <aside className="fixed bottom-0 z-10 flex h-16 w-full flex-row items-center justify-between bg-[#1a1a2e] px-3 text-white md:sticky md:top-0 md:h-screen md:w-64 md:flex-col md:items-stretch md:p-6">
-      <div className="flex min-w-0 flex-1 items-center gap-2 md:flex-col md:items-stretch md:gap-8">
-        <div className="hidden text-3xl font-bold tracking-tight md:block">XIQ</div>
-        <nav className="flex min-w-0 flex-1 items-center justify-around gap-1 md:flex-col md:items-stretch md:justify-start md:gap-2">
+    <aside className="fixed bottom-0 z-10 flex h-14 w-full flex-row items-center justify-between bg-[#1a1a2e] p-2 text-white md:sticky md:top-0 md:h-screen md:w-56 md:flex-col md:items-stretch md:p-4">
+      <div className="flex min-w-0 flex-1 items-center gap-1 md:block">
+        <div className="mb-6 hidden text-xl font-bold text-white md:block">XIQ</div>
+        <nav className="flex min-w-0 flex-1 items-center justify-around gap-1 md:flex-col md:items-stretch md:justify-start md:gap-1">
           {navItems.map((item) => (
             <NavLink key={item.to} to={item.to} className={({ isActive }) => (isActive ? activeClass : inactiveClass)}>
-              {item.label}
+              <span className={`h-2 w-2 rounded-sm ${item.indicator}`} />
+              <span className="hidden sm:inline md:inline">{item.label}</span>
             </NavLink>
           ))}
         </nav>
@@ -28,7 +31,7 @@ export default function Sidebar() {
       <button
         type="button"
         onClick={() => signOut()}
-        className="rounded-lg px-4 py-3 text-sm font-medium text-white md:mt-auto"
+        className="rounded px-3 py-2 text-sm text-white/60 transition-colors hover:bg-white/5 hover:text-white md:mt-auto"
       >
         Sign out
       </button>

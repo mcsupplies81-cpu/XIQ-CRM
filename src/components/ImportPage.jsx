@@ -89,25 +89,24 @@ export default function ImportPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Import</h1>
-        <p className="mt-1 text-sm text-gray-600">Upload a CSV or XLSX file to add contacts to XIQ CRM.</p>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="mb-5">
+        <h1 className="text-2xl font-semibold text-gray-900">Import</h1>
       </div>
 
-      <div className="max-w-xl border border-gray-200 p-6">
+      <div className="max-w-lg rounded-md border border-gray-200 bg-white p-6">
         <label className="block">
           <span className="mb-2 block text-sm font-medium text-gray-900">Contact file</span>
           <input
             type="file"
             accept=".csv,.xlsx"
             onChange={handleFileChange}
-            className="block w-full text-sm text-gray-900 file:mr-4 file:rounded-lg file:border-0 file:bg-gray-900 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white"
+            className="block w-full text-sm text-gray-900 file:mr-3 file:rounded file:border-0 file:bg-gray-900 file:px-3 file:py-1.5 file:text-sm file:text-white"
           />
         </label>
 
-        {loading ? <p className="mt-4 text-sm text-gray-600">Importing...</p> : null}
-        {error ? <p className="mt-4 text-sm text-red-700">{error}</p> : null}
+        {loading ? <p className="mt-4 text-sm text-gray-500">Importing...</p> : null}
+        {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
         {result ? (
           <p className="mt-4 text-sm text-gray-900">
             {result.imported} imported, {result.skipped} skipped, {result.errors?.length || 0} errors

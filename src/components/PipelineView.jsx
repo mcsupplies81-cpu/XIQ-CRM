@@ -21,9 +21,9 @@ function PipelineCard({ contact }) {
   }
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="cursor-grab border border-gray-200 bg-white p-4">
-      <div className="font-medium text-gray-900">{contact.name}</div>
-      <div className="mt-1 text-sm text-gray-600">{contact.school_name}</div>
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="mb-2 cursor-grab rounded border border-gray-200 bg-white p-3 transition-colors hover:border-gray-300">
+      <div className="text-sm font-medium text-gray-900">{contact.name}</div>
+      <div className="mt-1 text-xs text-gray-500">{contact.school_name || '—'}</div>
     </div>
   )
 }
@@ -32,13 +32,13 @@ function PipelineColumn({ status, contacts }) {
   const { setNodeRef } = useDroppable({ id: status })
 
   return (
-    <section ref={setNodeRef} className="flex min-h-[420px] w-72 shrink-0 flex-col border border-gray-200 bg-white p-4">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <span className={`rounded-full px-3 py-1 text-xs font-medium ${statusBadgeClasses[status]}`}>{status}</span>
-        <span className="text-sm text-gray-500">{contacts.length}</span>
+    <section ref={setNodeRef} className="min-h-[500px] w-56 shrink-0 rounded-md border border-gray-200 bg-white p-3">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <span className={`rounded px-2 py-0.5 text-xs font-medium ${statusBadgeClasses[status]}`}>{status}</span>
+        <span className="text-xs text-gray-500">{contacts.length}</span>
       </div>
       <SortableContext items={contacts.map((contact) => String(contact.id))} strategy={verticalListSortingStrategy}>
-        <div className="space-y-3">
+        <div>
           {contacts.map((contact) => (
             <PipelineCard key={contact.id} contact={contact} />
           ))}
@@ -109,17 +109,16 @@ export default function PipelineView() {
   }
 
   return (
-    <div className="min-h-screen bg-white p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Pipeline</h1>
-        <p className="mt-1 text-sm text-gray-600">Drag contacts between outreach stages.</p>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="mb-5">
+        <h1 className="text-2xl font-semibold text-gray-900">Pipeline</h1>
       </div>
 
       {loading ? (
-        <div className="border border-gray-200 p-8 text-center text-gray-600">Loading pipeline...</div>
+        <div className="rounded-md border border-gray-200 bg-white p-6 text-center text-sm text-gray-500">Loading pipeline...</div>
       ) : (
         <DndContext onDragEnd={handleDragEnd}>
-          <div className="flex gap-4 overflow-x-auto pb-4">
+          <div className="flex gap-3 overflow-x-auto pb-4">
             {statuses.map((status) => (
               <PipelineColumn key={status} status={status} contacts={groupedContacts[status]} />
             ))}

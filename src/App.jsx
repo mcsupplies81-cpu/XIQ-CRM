@@ -2,7 +2,9 @@ import { useAuth } from '@clerk/clerk-react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import LoginPage from './components/LoginPage.jsx'
 import Sidebar from './components/Sidebar.jsx'
+import SchoolsView from './components/SchoolsView.jsx'
 import ContactList from './components/ContactList.jsx'
+import DealsView from './components/DealsView.jsx'
 import PipelineView from './components/PipelineView.jsx'
 import ImportPage from './components/ImportPage.jsx'
 
@@ -11,7 +13,7 @@ export default function App() {
   const location = useLocation()
 
   if (!isLoaded) {
-    return <div className="flex min-h-screen items-center justify-center">Loading...</div>
+    return <div className="flex min-h-screen items-center justify-center bg-gray-50 text-sm text-gray-500">Loading XIQ...</div>
   }
 
   if (!isSignedIn && location.pathname !== '/login') {
@@ -19,7 +21,7 @@ export default function App() {
   }
 
   if (isSignedIn && location.pathname === '/login') {
-    return <Navigate to="/contacts" replace />
+    return <Navigate to="/schools" replace />
   }
 
   if (!isSignedIn) {
@@ -32,14 +34,16 @@ export default function App() {
   }
 
   return (
-    <div className="flex min-h-screen bg-white pb-16 md:pb-0">
+    <div className="flex min-h-screen bg-gray-50 pb-14 md:pb-0">
       <Sidebar />
       <main className="min-w-0 flex-1">
         <Routes>
+          <Route path="/schools" element={<SchoolsView />} />
           <Route path="/contacts" element={<ContactList />} />
+          <Route path="/deals" element={<DealsView />} />
           <Route path="/pipeline" element={<PipelineView />} />
           <Route path="/import" element={<ImportPage />} />
-          <Route path="*" element={<Navigate to="/contacts" replace />} />
+          <Route path="*" element={<Navigate to="/schools" replace />} />
         </Routes>
       </main>
     </div>

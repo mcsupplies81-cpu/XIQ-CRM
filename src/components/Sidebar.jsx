@@ -2,6 +2,7 @@ import { useClerk } from '@clerk/clerk-react'
 import { NavLink } from 'react-router-dom'
 
 const navItems = [
+  { to: '/dashboard', label: 'Dashboard', indicator: 'bg-rose-400' },
   { to: '/schools', label: 'Schools', indicator: 'bg-emerald-400' },
   { to: '/contacts', label: 'Contacts', indicator: 'bg-blue-400' },
   { to: '/deals', label: 'Deals', indicator: 'bg-violet-400' },

@@ -1,0 +1,232 @@
+import { useEffect, useMemo, useState } from 'react'
+
+const statuses = ['New', 'Emailed', 'Called', 'Responded', 'Closed']
+
+const statusBarClasses = {
+  New: 'bg-gray-400',
+  Emailed: 'bg-blue-500',
+  Called: 'bg-amber-500',
+  Responded: 'bg-purple-500',
+  Closed: 'bg-green-500',
+}
+
+const statusDotClasses = {
+  New: 'bg-gray-400',
+  Emailed: 'bg-blue-500',
+  Called: 'bg-amber-500',
+  Responded: 'bg-purple-500',
+  Closed: 'bg-green-500',
+}
+
+const typeBadgeClasses = {
+  call: 'bg-amber-100 text-amber-700',
+  email: 'bg-blue-100 text-blue-700',
+  dm: 'bg-purple-100 text-purple-700',
+}
+
+function formatRelativeTime(value) {
+  if (!value) {
+    return '—'
+  }
+
+  const timestamp = new Date(value).getTime()
+
+  if (Number.isNaN(timestamp)) {
+    return '—'
+  }
+
+  const seconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000))
+  const minutes = Math.floor(seconds / 60)
+  const hours = Math.floor(minutes / 60)
+  const days = Math.floor(hours / 24)
+
+  if (days > 0) {
+    return `${days}d ago`
+  }
+
+  if (hours > 0) {
+    return `${hours}h ago`
+  }
+
+  if (minutes > 0) {
+    return `${minutes}m ago`
+  }
+
+  return 'just now'
+}
+
+function truncateNotes(notes) {
+  if (!notes) {
+    return '—'
+  }
+
+  return notes.length > 60 ? `${notes.slice(0, 60)}...` : notes
+}
+
+function StatCard({ label, value }) {
+  return (
+    <div className="rounded border border-gray-200 bg-white p-5 shadow-sm">
+      <div className="text-3xl font-bold text-gray-900">{value}</div>
+      <div className="mt-1 text-sm font-medium text-gray-500">{label}</div>
+    </div>
+  )
+}
+
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-4 p-6">
+      <div className="h-24 animate-pulse rounded-md bg-gray-200" />
+      <div className="h-36 animate-pulse rounded-md bg-gray-200" />
+      <div className="h-72 animate-pulse rounded-md bg-gray-200" />
+    </div>
+  )
+}
+
+export default function Dashboard() {
+  const [dashboard, setDashboard] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let active = true
+
+    async function loadDashboard() {
+      setLoading(true)
+      setError('')
+
+      try {
+        const response = await fetch('/api/dashboard')
+
+        if (!response.ok) {
+          throw new Error('Unable to load dashboard')
+        }
+
+        const data = await response.json()
+
+        if (active) {
+          setDashboard(data)
+        }
+      } catch (loadError) {
+        if (active) {
+          setError(loadError.message)
+        }
+      } finally {
+        if (active) {
+          setLoading(false)
+        }
+      }
+    }
+
+    loadDashboard()
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const contactsByStatus = dashboard?.contacts_by_status || {}
+  const totalContacts = useMemo(() => statuses.reduce((total, status) => total + (Number(contactsByStatus[status]) || 0), 0), [contactsByStatus])
+  const closedContacts = Number(contactsByStatus.Closed) || 0
+
+  if (loading) {
+    return <LoadingSkeleton />
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="rounded border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6 p-6">
+      <div>
+        <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
+        <p className="mt-1 text-sm text-gray-500">A quick overview of CRM activity and pipeline health.</p>
+      </div>
+
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard label="Total Schools" value={dashboard.total_schools} />
+        <StatCard label="Total Contacts" value={totalContacts} />
+        <StatCard label="Open Deals" value={dashboard.open_deals} />
+        <StatCard label="Closed Contacts" value={closedContacts} />
+      </section>
+
+      <section className="rounded border border-gray-200 bg-white p-5 shadow-sm">
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Contacts by Status</h2>
+            <p className="text-sm text-gray-500">{totalContacts} total contacts</p>
+          </div>
+        </div>
+
+        <div className="flex h-5 overflow-hidden rounded-full bg-gray-100">
+          {totalContacts === 0 ? (
+            <div className="h-full w-full bg-gray-200" />
+          ) : (
+            statuses.map((status) => (
+              <div
+                key={status}
+                title={`${status}: ${contactsByStatus[status] || 0}`}
+                className={`${statusBarClasses[status]} transition-all`}
+                style={{ flexGrow: contactsByStatus[status] || 0, flexBasis: 0 }}
+              />
+            ))
+          )}
+        </div>
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-5">
+          {statuses.map((status) => (
+            <div key={status} className="flex items-center gap-2 text-sm text-gray-600">
+              <span className={`h-3 w-3 rounded-sm ${statusDotClasses[status]}`} />
+              <span className="font-medium text-gray-700">{status}</span>
+              <span>{contactsByStatus[status] || 0}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="overflow-hidden rounded border border-gray-200 bg-white shadow-sm">
+        <div className="border-b border-gray-200 px-5 py-4">
+          <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-left">
+            <thead className="border-b border-gray-200 bg-gray-50 text-xs font-medium uppercase tracking-wide text-gray-500">
+              <tr>
+                <th className="px-5 py-3 font-medium">Type</th>
+                <th className="px-5 py-3 font-medium">Contact</th>
+                <th className="px-5 py-3 font-medium">School</th>
+                <th className="px-5 py-3 font-medium">Notes</th>
+                <th className="px-5 py-3 font-medium">Time</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 bg-white">
+              {dashboard.recent_activities.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="px-5 py-6 text-center text-sm text-gray-500">No recent activity yet.</td>
+                </tr>
+              ) : (
+                dashboard.recent_activities.map((activity) => (
+                  <tr key={activity.id}>
+                    <td className="px-5 py-3">
+                      <span className={`rounded px-2 py-0.5 text-xs font-medium ${typeBadgeClasses[activity.type] || 'bg-gray-100 text-gray-700'}`}>
+                        {activity.type || '—'}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 text-sm font-medium text-gray-900">{activity.contact_name || '—'}</td>
+                    <td className="px-5 py-3 text-sm text-gray-500">{activity.school_name || '—'}</td>
+                    <td className="px-5 py-3 text-sm text-gray-500">{truncateNotes(activity.notes)}</td>
+                    <td className="whitespace-nowrap px-5 py-3 text-sm text-gray-500">{formatRelativeTime(activity.created_at)}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  )
+}

@@ -5,6 +5,7 @@ import Sidebar from './components/Sidebar.jsx'
 import SchoolsView from './components/SchoolsView.jsx'
 import ContactList from './components/ContactList.jsx'
 import DealsView from './components/DealsView.jsx'
+import DealsPipeline from './components/DealsPipeline.jsx'
 import PipelineView from './components/PipelineView.jsx'
 import ImportPage from './components/ImportPage.jsx'
 
@@ -41,6 +42,7 @@ export default function App() {
           <Route path="/schools" element={<SchoolsView />} />
           <Route path="/contacts" element={<ContactList />} />
           <Route path="/deals" element={<DealsView />} />
+          <Route path="/deals-pipeline" element={<DealsPipeline />} />
           <Route path="/pipeline" element={<PipelineView />} />
           <Route path="/import" element={<ImportPage />} />
           <Route path="*" element={<Navigate to="/schools" replace />} />

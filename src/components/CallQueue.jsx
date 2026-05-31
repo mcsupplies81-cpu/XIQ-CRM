@@ -135,6 +135,7 @@ export default function CallQueue() {
   const [queue, setQueue] = useState([])
   const [selectedContact, setSelectedContact] = useState(null)
   const [activitiesByContact, setActivitiesByContact] = useState({})
+  const [callsToday, setCallsToday] = useState(0)
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
   const [notes, setNotes] = useState('')
@@ -148,8 +149,12 @@ export default function CallQueue() {
       setError('')
 
       try {
-        const response = await fetch('/api/contacts')
-        const data = response.ok ? await response.json() : []
+        const [contactsResponse, todayResponse] = await Promise.all([
+          fetch('/api/contacts'),
+          fetch('/api/activities/today'),
+        ])
+        const data = contactsResponse.ok ? await contactsResponse.json() : []
+        const todayData = todayResponse.ok ? await todayResponse.json() : {}
         const callQueue = sortQueue(data.filter((contact) => contact.assigned_to === 'Calls' && (contact.status || 'New') !== 'Closed'))
 
         if (!active) {
@@ -158,18 +163,7 @@ export default function CallQueue() {
 
         setQueue(callQueue)
         setSelectedContact(callQueue[0] || null)
-
-        const activityEntries = await Promise.all(
-          callQueue.map(async (contact) => {
-            const activityResponse = await fetch(`/api/activities?contact_id=${encodeURIComponent(contact.id)}`)
-            const activities = activityResponse.ok ? await activityResponse.json() : []
-            return [String(contact.id), activities]
-          }),
-        )
-
-        if (active) {
-          setActivitiesByContact(Object.fromEntries(activityEntries))
-        }
+        setCallsToday(Number(todayData.call_count) || 0)
       } catch (loadError) {
         if (active) {
           setError('Unable to load the call queue.')
@@ -218,14 +212,7 @@ export default function CallQueue() {
   }, [activitiesByContact, selectedContact])
 
   const today = todayIsoDate()
-  const callActivitiesToday = useMemo(
-    () =>
-      Object.values(activitiesByContact)
-        .flat()
-        .filter((activity) => activity.type === 'call' && isoDate(activity.created_at) === today).length,
-    [activitiesByContact, today],
-  )
-  const progressPercent = Math.min(100, (callActivitiesToday / 20) * 100)
+  const progressPercent = Math.min(100, (callsToday / 20) * 100)
   const selectedActivities = selectedContact ? activitiesByContact[String(selectedContact.id)] || [] : []
   const recentCalls = selectedActivities.filter((activity) => activity.type === 'call').slice(0, 5)
 
@@ -280,6 +267,7 @@ export default function CallQueue() {
       }
 
       await postCallActivity(selectedContact.id, outcome.notes)
+      setCallsToday((n) => n + 1)
       advanceQueue(selectedContact.id)
     } catch (actionError) {
       setError('Unable to save the call outcome.')
@@ -318,11 +306,11 @@ export default function CallQueue() {
 
         <div className="mb-4 rounded-md border border-gray-200 bg-white p-4">
           <div className="mb-2 flex items-center justify-between text-sm font-medium text-gray-700">
-            <span>{callActivitiesToday} calls today</span>
+            <span>{callsToday} calls today</span>
             <span className="text-gray-400">Goal: 20</span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-gray-100">
-            <div className={`h-full rounded-full transition-all ${progressBarColor(callActivitiesToday)}`} style={{ width: `${progressPercent}%` }} />
+            <div className={`h-full rounded-full transition-all ${progressBarColor(callsToday)}`} style={{ width: `${progressPercent}%` }} />
           </div>
         </div>
 

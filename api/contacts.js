@@ -1,8 +1,8 @@
-import { getAuth } from '@clerk/backend'
+import { getUserId } from './_auth.js'
 import { sql } from './db.js'
 
 export default async function handler(req, res) {
-  const { userId } = getAuth(req)
+  const userId = await getUserId(req)
 
   if (!userId) {
     return res.status(401).json({ error: 'Unauthorized' })

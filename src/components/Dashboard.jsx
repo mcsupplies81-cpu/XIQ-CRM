@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 
 const statuses = ['New', 'Emailed', 'Called', 'Responded', 'Closed']
 
@@ -53,6 +54,21 @@ function formatRelativeTime(value) {
   }
 
   return 'just now'
+}
+
+function formatDaysAgo(value) {
+  if (!value) {
+    return '—'
+  }
+
+  const timestamp = new Date(value).getTime()
+
+  if (Number.isNaN(timestamp)) {
+    return '—'
+  }
+
+  const days = Math.floor((Date.now() - timestamp) / 86400000)
+  return `${Math.max(0, days)} days ago`
 }
 
 function truncateNotes(notes) {
@@ -126,7 +142,9 @@ export default function Dashboard() {
 
   const contactsByStatus = dashboard?.contacts_by_status || {}
   const totalContacts = useMemo(() => statuses.reduce((total, status) => total + (Number(contactsByStatus[status]) || 0), 0), [contactsByStatus])
-  const closedContacts = Number(contactsByStatus.Closed) || 0
+  const activityToday = dashboard?.activity_today || {}
+  const overdueFollowUps = dashboard?.overdue_follow_ups || []
+  const staleDeals = dashboard?.stale_deals || []
 
   if (loading) {
     return <LoadingSkeleton />
@@ -147,11 +165,75 @@ export default function Dashboard() {
         <p className="mt-1 text-sm text-gray-500">A quick overview of CRM activity and pipeline health.</p>
       </div>
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-3">
         <StatCard label="Total Schools" value={dashboard.total_schools} />
         <StatCard label="Total Contacts" value={totalContacts} />
         <StatCard label="Open Deals" value={dashboard.open_deals} />
-        <StatCard label="Closed Contacts" value={closedContacts} />
+      </section>
+
+      <section className="rounded border border-gray-200 bg-white p-5 shadow-sm">
+        <p className="text-sm font-medium text-gray-700">
+          Today:{' '}
+          <span className="font-semibold text-green-600">{Number(activityToday.calls_today) || 0} calls</span>
+          <span className="text-gray-400"> · </span>
+          <span className="font-semibold text-sky-600">{Number(activityToday.dms_today) || 0} DMs</span>
+          <span className="text-gray-400"> · </span>
+          <span className="font-semibold text-blue-600">{Number(activityToday.emails_today) || 0} emails</span>
+        </p>
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-2">
+        <div className="rounded border border-gray-200 bg-white shadow-sm">
+          <div className="border-b border-gray-200 px-5 py-4">
+            <h2 className="text-lg font-semibold text-gray-900">Overdue Follow-ups</h2>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {overdueFollowUps.length === 0 ? (
+              <div className="px-5 py-6 text-sm font-medium text-green-600">No overdue follow-ups ✓</div>
+            ) : (
+              overdueFollowUps.map((contact) => (
+                <Link key={contact.id} to="/contacts" className="block px-5 py-4 transition-colors hover:bg-gray-50">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">{contact.name}</p>
+                      <p className="mt-1 text-sm text-gray-500">{contact.school_name || '—'}</p>
+                    </div>
+                    <div className="text-right text-xs text-gray-500">
+                      <p className="font-medium text-red-600">{formatDaysAgo(contact.follow_up_at)}</p>
+                      <p className="mt-1">{contact.assigned_to || 'Unassigned'}</p>
+                    </div>
+                  </div>
+                </Link>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="rounded border border-gray-200 bg-white shadow-sm">
+          <div className="border-b border-gray-200 px-5 py-4">
+            <h2 className="text-lg font-semibold text-gray-900">Stale Deals</h2>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {staleDeals.length === 0 ? (
+              <div className="px-5 py-6 text-sm font-medium text-green-600">All deals up to date ✓</div>
+            ) : (
+              staleDeals.map((deal) => (
+                <Link key={deal.id} to="/deals" className="block px-5 py-4 transition-colors hover:bg-gray-50">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-sm font-semibold text-gray-900">{deal.title}</p>
+                        <span className="rounded bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-700">{deal.stage || '—'}</span>
+                      </div>
+                      <p className="mt-1 text-sm text-gray-500">{deal.school_name || '—'}</p>
+                    </div>
+                    <p className="whitespace-nowrap text-xs font-medium text-gray-500">{formatDaysAgo(deal.updated_at)}</p>
+                  </div>
+                </Link>
+              ))
+            )}
+          </div>
+        </div>
       </section>
 
       <section className="rounded border border-gray-200 bg-white p-5 shadow-sm">

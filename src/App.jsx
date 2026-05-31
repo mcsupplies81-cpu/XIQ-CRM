@@ -12,6 +12,7 @@ import ImportPage from './components/ImportPage.jsx'
 import Dashboard from './components/Dashboard.jsx'
 import TemplatesPage from './components/TemplatesPage.jsx'
 import DMQueue from './components/DMQueue.jsx'
+import AIAssistant from './components/AIAssistant.jsx'
 
 export default function App() {
   const { isLoaded, isSignedIn } = useAuth()
@@ -56,6 +57,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </main>
+      <AIAssistant />
     </div>
   )
 }

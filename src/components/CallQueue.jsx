@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import Avatar from './Avatar.jsx'
 
 const statusBadgeClasses = {
   New: 'bg-gray-100 text-gray-700',
@@ -336,9 +337,12 @@ export default function CallQueue() {
                     className={`block w-full px-4 py-3 text-left transition-colors hover:bg-gray-50 ${selectedContact?.id === contact.id ? 'bg-blue-50' : 'bg-white'}`}
                   >
                     <div className="mb-2 flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-bold text-gray-900">{contact.name}</div>
-                        <div className="truncate text-xs text-gray-500">{contact.school_name || '—'}</div>
+                      <div className="flex min-w-0 items-center gap-2.5">
+                        <Avatar name={contact.name} />
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-bold text-gray-900">{contact.name}</div>
+                          <div className="truncate text-xs text-gray-500">{contact.school_name || '—'}</div>
+                        </div>
                       </div>
                       <div className="flex shrink-0 flex-wrap justify-end gap-1">
                         <span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">{contact.role || '—'}</span>
@@ -364,7 +368,10 @@ export default function CallQueue() {
           <div className="space-y-6">
             <div>
               <p className="text-sm font-medium text-gray-500">Active Call</p>
-              <h2 className="mt-1 text-2xl font-semibold text-gray-900">{selectedContact.name}</h2>
+              <div className="mt-1 flex items-center gap-3">
+                <Avatar name={selectedContact.name} size="lg" />
+                <h2 className="text-2xl font-semibold text-gray-900">{selectedContact.name}</h2>
+              </div>
               <p className="mt-1 text-sm text-gray-500">{selectedContact.school_name || '—'}</p>
             </div>
 

@@ -8,6 +8,11 @@ const activityTypeClasses = {
   dm: 'bg-purple-100 text-purple-700',
 }
 
+const templateTypeBadgeClasses = {
+  email: 'bg-blue-100 text-blue-700',
+  dm: 'bg-purple-100 text-purple-700',
+}
+
 const stageBadgeClasses = {
   Prospecting: 'bg-gray-100 text-gray-700',
   Proposal: 'bg-blue-100 text-blue-700',
@@ -63,6 +68,13 @@ function dateInputValue(value) {
   return value ? String(value).slice(0, 10) : ''
 }
 
+function applyTemplateVariables(body, contact) {
+  return body
+    .replaceAll('{contact_name}', contact.name || '')
+    .replaceAll('{school_name}', contact.school_name || contact.schools?.name || '')
+    .replaceAll('{role}', contact.role || '')
+}
+
 export default function ContactDetail({ contact, onClose, onContactUpdated }) {
   const [notes, setNotes] = useState(contact.notes || '')
   const [originalNotes, setOriginalNotes] = useState(contact.notes || '')
@@ -77,6 +89,9 @@ export default function ContactDetail({ contact, onClose, onContactUpdated }) {
   const [deals, setDeals] = useState([])
   const [isSaving, setIsSaving] = useState(false)
   const [isLoggingActivity, setIsLoggingActivity] = useState(false)
+  const [showTemplateModal, setShowTemplateModal] = useState(false)
+  const [templates, setTemplates] = useState([])
+  const [templatesLoading, setTemplatesLoading] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -94,6 +109,7 @@ export default function ContactDetail({ contact, onClose, onContactUpdated }) {
     setActivityType('call')
     setActivityNotes('')
     setDeals([])
+    setShowTemplateModal(false)
 
     async function loadContactPanels() {
       const [activitiesResponse, dealsResponse] = await Promise.all([
@@ -235,6 +251,22 @@ export default function ContactDetail({ contact, onClose, onContactUpdated }) {
     }
   }
 
+  async function openTemplateModal() {
+    setShowTemplateModal(true)
+    setTemplatesLoading(true)
+
+    const response = await fetch('/api/templates')
+    const data = response.ok ? await response.json() : []
+
+    setTemplates(data)
+    setTemplatesLoading(false)
+  }
+
+  function handleTemplateSelect(template) {
+    setNotes(applyTemplateVariables(template.body, contact))
+    setShowTemplateModal(false)
+  }
+
   const xHandle = cleanHandle(contact.x_handle)
   const location = [contact.city, contact.state].filter(Boolean).join(', ') || '—'
 
@@ -316,7 +348,12 @@ export default function ContactDetail({ contact, onClose, onContactUpdated }) {
 
       <section className="border-b border-gray-100 py-4">
         <label className="block">
-          <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">Notes</span>
+          <span className="mb-1 flex items-center justify-between gap-3">
+            <span className="text-xs font-medium uppercase tracking-wide text-gray-500">Notes</span>
+            <button type="button" onClick={openTemplateModal} className="rounded border border-gray-300 px-2 py-1 text-xs text-gray-700 transition-colors hover:bg-gray-50">
+              Use Template
+            </button>
+          </span>
           <textarea
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
@@ -409,6 +446,37 @@ export default function ContactDetail({ contact, onClose, onContactUpdated }) {
           )}
         </div>
       </section>
+
+      {showTemplateModal ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="max-h-[80vh] w-full max-w-lg overflow-hidden rounded-lg bg-white shadow-xl">
+            <div className="flex items-center justify-between border-b border-gray-200 p-4">
+              <h3 className="text-sm font-semibold text-gray-900">Use Template</h3>
+              <button type="button" onClick={() => setShowTemplateModal(false)} className="rounded px-2 py-1 text-xl leading-none text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900" aria-label="Close template picker">
+                ×
+              </button>
+            </div>
+            <div className="max-h-[60vh] space-y-2 overflow-y-auto p-4">
+              {templatesLoading ? <p className="text-sm text-gray-500">Loading templates...</p> : null}
+              {!templatesLoading && templates.length === 0 ? <p className="text-sm text-gray-500">No templates yet.</p> : null}
+              {templates.map((template) => (
+                <button
+                  key={template.id}
+                  type="button"
+                  onClick={() => handleTemplateSelect(template)}
+                  className="block w-full rounded border border-gray-200 p-3 text-left transition-colors hover:border-gray-300 hover:bg-gray-50"
+                >
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <span className="text-sm font-medium text-gray-900">{template.name}</span>
+                    <span className={`rounded px-2 py-0.5 text-xs font-medium uppercase ${templateTypeBadgeClasses[template.type] || templateTypeBadgeClasses.email}`}>{template.type}</span>
+                  </div>
+                  <p className="line-clamp-2 whitespace-pre-wrap text-xs text-gray-500">{template.body}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </aside>
   )
 }

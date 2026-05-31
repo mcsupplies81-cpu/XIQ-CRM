@@ -1,8 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
 import SchoolDetail from './SchoolDetail.jsx'
 
+const activePill = 'rounded border border-gray-900 bg-gray-900 px-2.5 py-1 text-xs font-medium text-white transition-colors'
+const inactivePill = 'rounded border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50'
+
 function formatLocation(city, state) {
   return [city, state].filter(Boolean).join(', ') || '—'
+}
+
+function toggleValue(values, value) {
+  return values.includes(value) ? values.filter((item) => item !== value) : [...values, value]
+}
+
+function uniqueValues(items, key) {
+  return Array.from(new Set(items.map((item) => item[key]).filter(Boolean))).sort((a, b) => a.localeCompare(b))
 }
 
 function deriveSchools(contacts, deals) {
@@ -40,6 +51,8 @@ export default function SchoolsView() {
   const [schools, setSchools] = useState([])
   const [selectedSchoolId, setSelectedSchoolId] = useState(null)
   const [search, setSearch] = useState('')
+  const [selectedStates, setSelectedStates] = useState([])
+  const [selectedDivisions, setSelectedDivisions] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -64,24 +77,62 @@ export default function SchoolsView() {
     }
   }, [])
 
+  const states = useMemo(() => uniqueValues(schools, 'state'), [schools])
+  const divisions = useMemo(() => uniqueValues(schools, 'division'), [schools])
+
   const filteredSchools = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
-    return schools.filter((school) => !normalizedSearch || school.name.toLowerCase().includes(normalizedSearch))
-  }, [schools, search])
+
+    return schools.filter((school) => {
+      const matchesSearch =
+        !normalizedSearch ||
+        school.name.toLowerCase().includes(normalizedSearch) ||
+        school.city.toLowerCase().includes(normalizedSearch)
+      const matchesState = selectedStates.length === 0 || selectedStates.includes(school.state)
+      const matchesDivision = selectedDivisions.length === 0 || selectedDivisions.includes(school.division)
+
+      return matchesSearch && matchesState && matchesDivision
+    })
+  }, [schools, search, selectedStates, selectedDivisions])
 
   return (
     <div className="flex min-h-screen bg-gray-50">
       <section className="min-w-0 flex-1 p-6">
-        <div className="mb-5 flex items-center justify-between gap-4">
+        <div className="mb-4 flex items-center justify-between gap-4">
           <h1 className="text-2xl font-semibold text-gray-900">Schools</h1>
           <input
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search schools"
-            className="w-72 rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none"
+            placeholder="Search schools or cities"
+            className="w-80 rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none"
           />
         </div>
+
+        <div className="mb-2 flex flex-wrap gap-2">
+          {states.map((state) => (
+            <button
+              key={state}
+              type="button"
+              onClick={() => setSelectedStates((current) => toggleValue(current, state))}
+              className={selectedStates.includes(state) ? activePill : inactivePill}
+            >
+              {state}
+            </button>
+          ))}
+          <span className="mx-1 h-6 border-l border-gray-200" />
+          {divisions.map((division) => (
+            <button
+              key={division}
+              type="button"
+              onClick={() => setSelectedDivisions((current) => toggleValue(current, division))}
+              className={selectedDivisions.includes(division) ? activePill : inactivePill}
+            >
+              {division}
+            </button>
+          ))}
+        </div>
+        <p className="mb-4 text-sm text-gray-500">Showing {filteredSchools.length} of {schools.length} schools</p>
 
         <div className="overflow-hidden rounded-md border border-gray-200 bg-white">
           <table className="min-w-full text-left">

@@ -3,6 +3,7 @@ import ContactDetail from './ContactDetail.jsx'
 
 const roles = ['HC', 'AD', 'OC']
 const assignees = ['Email', 'Calls', 'DMs']
+const statuses = ['New', 'Emailed', 'Called', 'Responded', 'Closed']
 
 export const statusBadgeClasses = {
   New: 'bg-gray-100 text-gray-700',
@@ -36,6 +37,7 @@ export default function ContactList() {
   const [search, setSearch] = useState('')
   const [selectedRoles, setSelectedRoles] = useState([])
   const [selectedAssignees, setSelectedAssignees] = useState([])
+  const [selectedStatuses, setSelectedStatuses] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -69,10 +71,12 @@ export default function ContactList() {
         contact.school_name?.toLowerCase().includes(normalizedSearch)
       const matchesRole = selectedRoles.length === 0 || selectedRoles.includes(contact.role)
       const matchesAssignee = selectedAssignees.length === 0 || selectedAssignees.includes(contact.assigned_to)
+      const contactStatus = contact.status || 'New'
+      const matchesStatus = selectedStatuses.length === 0 || selectedStatuses.includes(contactStatus)
 
-      return matchesSearch && matchesRole && matchesAssignee
+      return matchesSearch && matchesRole && matchesAssignee && matchesStatus
     })
-  }, [contacts, search, selectedRoles, selectedAssignees])
+  }, [contacts, search, selectedRoles, selectedAssignees, selectedStatuses])
 
   function handleContactUpdated(updatedContact) {
     const normalizedContact = addSchool({ ...selectedContact, ...updatedContact })
@@ -114,6 +118,17 @@ export default function ContactList() {
               className={selectedAssignees.includes(assignee) ? activePill : inactivePill}
             >
               {assignee}
+            </button>
+          ))}
+          <span className="mx-1 h-6 border-l border-gray-200" />
+          {statuses.map((status) => (
+            <button
+              key={status}
+              type="button"
+              onClick={() => setSelectedStatuses((current) => toggleValue(current, status))}
+              className={selectedStatuses.includes(status) ? activePill : inactivePill}
+            >
+              {status}
             </button>
           ))}
         </div>

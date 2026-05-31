@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import Avatar from './Avatar.jsx'
-import { statusBadgeClasses } from './ContactList.jsx'
+import StatusDot from './StatusDot.jsx'
 
 const DAILY_DM_GOAL = 50
 const pendingToggleClass = 'rounded border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50'
@@ -283,7 +283,7 @@ export default function DMQueue() {
                           <div className="mb-1 flex flex-wrap items-center gap-2">
                             <h2 className="font-semibold text-gray-900">{contact.name}</h2>
                             {contact.role ? <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700">{contact.role}</span> : null}
-                            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusBadgeClasses[contact.status || 'New'] || 'bg-gray-100 text-gray-700'}`}>{contact.status || 'New'}</span>
+                            <StatusDot status={contact.status} />
                           </div>
                           <p className="mb-2 text-sm text-gray-500">{contact.school_name || 'No school listed'}</p>
                           {handle ? (

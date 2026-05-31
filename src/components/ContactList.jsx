@@ -7,7 +7,7 @@ const assignees = ['Email', 'Calls', 'DMs']
 const statuses = ['New', 'Emailed', 'Called', 'Responded', 'Closed']
 const statusSortOrder = statuses.reduce((order, status, index) => ({ ...order, [status]: index }), {})
 
-export const statusBadgeClasses = {
+const statusBadgeClasses = {
   New: 'bg-gray-100 text-gray-700',
   Emailed: 'bg-blue-100 text-blue-700',
   Called: 'bg-amber-100 text-amber-700',

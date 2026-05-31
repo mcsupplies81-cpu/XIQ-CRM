@@ -37,17 +37,17 @@ const navSections = [
 const mobileNavItems = navSections.slice(0, 2).flatMap((section) => section.items)
 
 const activeClass =
-  'border-l-0 bg-white/10 text-white font-medium rounded px-3 py-2 text-sm flex items-center gap-2.5 transition-colors md:border-l-2 md:border-white'
+  'bg-gray-100 text-gray-900 font-medium rounded px-3 py-2 text-sm flex items-center gap-2.5 transition-colors border-l-2 border-gray-900'
 const inactiveClass =
-  'border-l-0 text-white/60 hover:text-white hover:bg-white/5 rounded px-3 py-2 text-sm flex items-center gap-2.5 transition-colors md:border-l-2 md:border-transparent'
+  'text-gray-500 hover:text-gray-900 hover:bg-gray-50 rounded px-3 py-2 text-sm flex items-center gap-2.5 transition-colors border-l-2 border-transparent'
 
 export default function Sidebar() {
   const { signOut } = useClerk()
 
   return (
-    <aside className="fixed bottom-0 z-10 flex h-14 w-full flex-row items-center justify-between bg-[#1a1a2e] p-2 text-white md:sticky md:top-0 md:h-screen md:w-48 md:flex-col md:items-stretch md:p-4">
+    <aside className="fixed bottom-0 z-10 flex h-14 w-full flex-row items-center justify-between border-t border-gray-200 bg-white p-2 md:sticky md:top-0 md:h-screen md:w-48 md:flex-col md:items-stretch md:border-r md:border-t-0 md:p-4">
       <div className="flex min-w-0 flex-1 items-center gap-1 md:block">
-        <div className="mb-6 hidden text-2xl font-black tracking-tight text-white md:block">XIQ</div>
+        <div className="mb-6 hidden text-xl font-bold tracking-tight text-gray-900 md:block">XIQ</div>
         <nav className="flex min-w-0 flex-1 items-center justify-around gap-1 md:hidden">
           {mobileNavItems.map((item) => (
             <NavLink key={item.to} to={item.to} className={({ isActive }) => (isActive ? activeClass : inactiveClass)}>
@@ -56,13 +56,13 @@ export default function Sidebar() {
             </NavLink>
           ))}
         </nav>
-        <nav className="hidden md:flex md:flex-col md:items-stretch md:justify-start md:gap-1">
+        <nav className="hidden md:flex md:flex-col md:items-stretch md:justify-start md:gap-0.5">
           {navSections.map((section) => (
             <div key={section.label ?? 'main'}>
               {section.label !== null && (
                 <>
-                  <div className="my-2 border-t border-white/10" />
-                  <div className="px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-white/30">
+                  <div className="my-2 border-t border-gray-100" />
+                  <div className="px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
                     {section.label}
                   </div>
                 </>
@@ -77,15 +77,14 @@ export default function Sidebar() {
           ))}
         </nav>
       </div>
-      <div className="md:mt-auto md:border-t md:border-white/10 md:pt-3">
+      <div className="md:mt-auto md:border-t md:border-gray-100 md:pt-3">
         <button
           type="button"
           onClick={() => signOut()}
-          className="rounded px-3 py-2 text-sm text-white/60 transition-colors hover:bg-white/5 hover:text-white md:w-full md:text-left"
+          className="w-full rounded px-3 py-2 text-left text-sm text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-700"
         >
-          → Sign out
+          Sign out
         </button>
-        <div className="mt-2 hidden text-center text-[10px] tracking-widest text-white/20 md:block">⌘K SEARCH</div>
       </div>
     </aside>
   )

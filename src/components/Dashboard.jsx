@@ -152,6 +152,8 @@ export default function Dashboard() {
     )
   }
 
+  const isEmpty = totalContacts === 0 && dashboard.total_schools === 0
+
   return (
     <div className="space-y-6 p-6">
       <div>
@@ -159,6 +161,16 @@ export default function Dashboard() {
         <p className="mt-1 text-sm text-gray-500">A quick overview of CRM activity and pipeline health.</p>
       </div>
 
+      {isEmpty ? (
+        <div className="rounded border border-dashed border-gray-300 bg-white px-8 py-16 text-center">
+          <p className="text-lg font-semibold text-gray-900">No data yet</p>
+          <p className="mt-2 text-sm text-gray-500">Import your contacts to get started. Everything will populate from there.</p>
+          <Link to="/import" className="mt-4 inline-block rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-700">
+            Go to Import
+          </Link>
+        </div>
+      ) : (
+        <>
       <section className="grid gap-4 sm:grid-cols-3">
         <StatCard label="Total Schools" value={dashboard.total_schools} />
         <StatCard label="Total Contacts" value={totalContacts} />
@@ -305,6 +317,8 @@ export default function Dashboard() {
           </table>
         </div>
       </section>
+        </>
+      )}
     </div>
   )
 }

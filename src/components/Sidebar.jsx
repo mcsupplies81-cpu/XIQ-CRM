@@ -40,6 +40,7 @@ export default function Sidebar() {
       >
         Sign out
       </button>
+      <div className="mt-2 hidden text-center text-xs text-white/20 md:block">⌘K to search</div>
     </aside>
   )
 }

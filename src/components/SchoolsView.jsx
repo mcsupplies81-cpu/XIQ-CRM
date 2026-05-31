@@ -134,38 +134,38 @@ export default function SchoolsView() {
         </div>
         <p className="mb-4 text-sm text-gray-500">Showing {filteredSchools.length} of {schools.length} schools</p>
 
-        <div className="overflow-hidden rounded-md border border-gray-200 bg-white">
+        <div className="border border-gray-200 overflow-hidden bg-white">
           <table className="min-w-full text-left">
-            <thead className="border-b border-gray-200 bg-gray-50 text-xs font-medium uppercase tracking-wide text-gray-500">
+            <thead className="sticky top-0 z-10 border-b border-gray-300 bg-gray-50 text-xs font-semibold uppercase tracking-wide text-gray-500">
               <tr className="h-9">
-                <th className="px-3 py-2 font-medium">School</th>
-                <th className="px-3 py-2 font-medium">Location</th>
-                <th className="px-3 py-2 font-medium">Division</th>
-                <th className="px-3 py-2 font-medium">Contacts</th>
-                <th className="px-3 py-2 font-medium">Deals</th>
+                <th className="border-r border-gray-200 px-3 py-1.5 font-semibold">School</th>
+                <th className="border-r border-gray-200 px-3 py-1.5 font-semibold">Location</th>
+                <th className="border-r border-gray-200 px-3 py-1.5 font-semibold">Division</th>
+                <th className="border-r border-gray-200 px-3 py-1.5 font-semibold">Contacts</th>
+                <th className="px-3 py-1.5 font-semibold">Deals</th>
               </tr>
             </thead>
             <tbody className="bg-white">
               {loading ? (
-                <tr className="h-10 border-b border-gray-100">
-                  <td colSpan="5" className="px-3 py-2 text-center text-sm text-gray-500">Loading schools...</td>
+                <tr className="h-9 border-b border-gray-200">
+                  <td colSpan="5" className="px-3 py-1.5 text-center text-[13px] text-gray-500">Loading schools...</td>
                 </tr>
               ) : filteredSchools.length === 0 ? (
-                <tr className="h-10 border-b border-gray-100">
-                  <td colSpan="5" className="px-3 py-2 text-center text-sm text-gray-500">No schools found.</td>
+                <tr className="h-9 border-b border-gray-200">
+                  <td colSpan="5" className="px-3 py-1.5 text-center text-[13px] text-gray-500">No schools found.</td>
                 </tr>
               ) : (
                 filteredSchools.map((school) => (
                   <tr
                     key={school.id || school.name}
                     onClick={() => school.id && setSelectedSchoolId(school.id)}
-                    className={`h-10 cursor-pointer border-b border-gray-100 transition-colors hover:bg-gray-50 ${selectedSchoolId === school.id ? 'bg-blue-50' : ''}`}
+                    className={`h-9 cursor-pointer border-b border-gray-200 transition-colors hover:bg-gray-50/80 ${selectedSchoolId === school.id ? 'bg-blue-50' : ''}`}
                   >
-                    <td className="px-3 py-2 text-sm font-medium text-gray-900">{school.name}</td>
-                    <td className="px-3 py-2 text-sm text-gray-500">{formatLocation(school.city, school.state)}</td>
-                    <td className="px-3 py-2 text-sm text-gray-500">{school.division}</td>
-                    <td className="px-3 py-2 text-sm text-gray-900">{school.contactsCount}</td>
-                    <td className="px-3 py-2 text-sm text-gray-900">{school.dealsCount}</td>
+                    <td className="border-r border-gray-200 px-3 py-1.5 text-[13px] font-medium text-gray-900">{school.name}</td>
+                    <td className="border-r border-gray-200 px-3 py-1.5 text-[13px] text-gray-500">{formatLocation(school.city, school.state)}</td>
+                    <td className="border-r border-gray-200 px-3 py-1.5 text-[13px] text-gray-500">{school.division}</td>
+                    <td className="border-r border-gray-200 px-3 py-1.5 text-[13px] text-gray-900">{school.contactsCount}</td>
+                    <td className="px-3 py-1.5 text-[13px] text-gray-900">{school.dealsCount}</td>
                   </tr>
                 ))
               )}

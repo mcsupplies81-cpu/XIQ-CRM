@@ -4,6 +4,7 @@ import ContactDetail from './ContactDetail.jsx'
 const roles = ['HC', 'AD', 'OC']
 const assignees = ['Email', 'Calls', 'DMs']
 const statuses = ['New', 'Emailed', 'Called', 'Responded', 'Closed']
+const statusSortOrder = statuses.reduce((order, status, index) => ({ ...order, [status]: index }), {})
 
 export const statusBadgeClasses = {
   New: 'bg-gray-100 text-gray-700',
@@ -68,6 +69,9 @@ export default function ContactList() {
   const [loading, setLoading] = useState(true)
   const [bulkStatus, setBulkStatus] = useState(statuses[0])
   const [bulkUpdating, setBulkUpdating] = useState(false)
+  const [sortKey, setSortKey] = useState(null)
+  const [sortDir, setSortDir] = useState('asc')
+  const [savingCells, setSavingCells] = useState({})
 
   useEffect(() => {
     let active = true
@@ -111,7 +115,63 @@ export default function ContactList() {
     })
   }, [contacts, search, selectedRoles, selectedAssignees, selectedStatuses, showDueToday])
 
-  const allVisibleSelected = filteredContacts.length > 0 && filteredContacts.every((contact) => selectedIds.has(String(contact.id)))
+
+  const sortedContacts = useMemo(() => {
+    if (!sortKey) {
+      return filteredContacts
+    }
+
+    function sortValue(contact) {
+      if (sortKey === 'school') {
+        return contact.school_name
+      }
+
+      if (sortKey === 'status') {
+        return contact.status || 'New'
+      }
+
+      if (sortKey === 'assigned_to') {
+        return contact.assigned_to
+      }
+
+      if (sortKey === 'follow_up_at') {
+        return isoDate(contact.follow_up_at) || null
+      }
+
+      return contact[sortKey]
+    }
+
+    return [...filteredContacts].sort((first, second) => {
+      const firstValue = sortValue(first)
+      const secondValue = sortValue(second)
+      const firstIsNull = firstValue === null || firstValue === undefined || firstValue === ''
+      const secondIsNull = secondValue === null || secondValue === undefined || secondValue === ''
+
+      if (firstIsNull && secondIsNull) {
+        return 0
+      }
+
+      if (firstIsNull) {
+        return 1
+      }
+
+      if (secondIsNull) {
+        return -1
+      }
+
+      let comparison
+
+      if (sortKey === 'status') {
+        comparison = (statusSortOrder[firstValue] ?? Number.MAX_SAFE_INTEGER) - (statusSortOrder[secondValue] ?? Number.MAX_SAFE_INTEGER)
+      } else {
+        comparison = String(firstValue).localeCompare(String(secondValue), undefined, { numeric: true, sensitivity: 'base' })
+      }
+
+      return sortDir === 'asc' ? comparison : -comparison
+    })
+  }, [filteredContacts, sortDir, sortKey])
+
+  const allVisibleSelected = sortedContacts.length > 0 && sortedContacts.every((contact) => selectedIds.has(String(contact.id)))
 
   function handleContactUpdated(updatedContact) {
     const normalizedContact = addSchool({ ...selectedContact, ...updatedContact })
@@ -129,9 +189,9 @@ export default function ContactList() {
       const next = new Set(current)
 
       if (allVisibleSelected) {
-        filteredContacts.forEach((contact) => next.delete(String(contact.id)))
+        sortedContacts.forEach((contact) => next.delete(String(contact.id)))
       } else {
-        filteredContacts.forEach((contact) => next.add(String(contact.id)))
+        sortedContacts.forEach((contact) => next.add(String(contact.id)))
       }
 
       return next
@@ -151,6 +211,65 @@ export default function ContactList() {
 
       return next
     })
+  }
+
+  function handleSort(key) {
+    if (sortKey === key) {
+      setSortDir((current) => (current === 'asc' ? 'desc' : 'asc'))
+      return
+    }
+
+    setSortKey(key)
+    setSortDir('asc')
+  }
+
+  async function handleInlineContactUpdate(contact, changes, fieldKey) {
+    const cellKey = `${contact.id}:${fieldKey}`
+    const previousContact = contact
+
+    setSavingCells((current) => ({ ...current, [cellKey]: true }))
+    setContacts((current) => current.map((item) => (item.id === contact.id ? { ...item, ...changes } : item)))
+    setSelectedContact((current) => (current && current.id === contact.id ? { ...current, ...changes } : current))
+
+    try {
+      const response = await fetch(`/api/contacts/${contact.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(changes),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update contact')
+      }
+
+      const updatedContact = addSchool(await response.json())
+      setContacts((current) => current.map((item) => (item.id === contact.id ? { ...item, ...updatedContact } : item)))
+      setSelectedContact((current) => (current && current.id === contact.id ? { ...current, ...updatedContact } : current))
+    } catch (error) {
+      setContacts((current) => current.map((item) => (item.id === contact.id ? previousContact : item)))
+      setSelectedContact((current) => (current && current.id === contact.id ? previousContact : current))
+    } finally {
+      setSavingCells((current) => {
+        const next = { ...current }
+        delete next[cellKey]
+        return next
+      })
+    }
+  }
+
+  function renderSortableHeader(label, key) {
+    const active = sortKey === key
+
+    return (
+      <button
+        type="button"
+        onClick={() => handleSort(key)}
+        className={`flex w-full items-center text-left font-semibold ${active ? 'text-gray-900' : 'text-gray-500'}`}
+      >
+        {label}
+        <span className="ml-1 text-gray-400">{active ? (sortDir === 'asc' ? '↑' : '↓') : '↕'}</span>
+      </button>
+    )
   }
 
   async function handleBulkStatusUpdate(event) {
@@ -242,61 +361,102 @@ export default function ContactList() {
           </button>
         </div>
 
-        <div className="overflow-hidden rounded-md border border-gray-200 bg-white">
+        <div className="border border-gray-200 overflow-hidden bg-white">
           <table className="min-w-full text-left">
-            <thead className="border-b border-gray-200 bg-gray-50 text-xs font-medium uppercase tracking-wide text-gray-500">
+            <thead className="sticky top-0 z-10 border-b border-gray-300 bg-gray-50 text-xs font-semibold uppercase tracking-wide text-gray-500">
               <tr className="h-9">
-                <th className="w-10 px-3 py-2 font-medium">
+                <th className="w-10 border-r border-gray-200 px-3 py-1.5 font-semibold">
                   <input
                     type="checkbox"
                     checked={allVisibleSelected}
                     onChange={handleToggleAllVisible}
-                    disabled={filteredContacts.length === 0}
+                    disabled={sortedContacts.length === 0}
                     aria-label="Select all visible contacts"
                     className="h-4 w-4 rounded border-gray-300 text-blue-600"
                   />
                 </th>
-                <th className="px-3 py-2 font-medium">Name</th>
-                <th className="px-3 py-2 font-medium">School</th>
-                <th className="px-3 py-2 font-medium">Role</th>
-                <th className="px-3 py-2 font-medium">Status</th>
-                <th className="px-3 py-2 font-medium">Assigned To</th>
-                <th className="px-3 py-2 font-medium">Follow Up</th>
+                <th className="border-r border-gray-200 px-3 py-1.5 font-semibold">{renderSortableHeader('Name', 'name')}</th>
+                <th className="border-r border-gray-200 px-3 py-1.5 font-semibold">{renderSortableHeader('School', 'school')}</th>
+                <th className="border-r border-gray-200 px-3 py-1.5 font-semibold">{renderSortableHeader('Role', 'role')}</th>
+                <th className="border-r border-gray-200 px-3 py-1.5 font-semibold">{renderSortableHeader('Status', 'status')}</th>
+                <th className="border-r border-gray-200 px-3 py-1.5 font-semibold">{renderSortableHeader('Assigned To', 'assigned_to')}</th>
+                <th className="px-3 py-1.5 font-semibold">{renderSortableHeader('Follow Up', 'follow_up_at')}</th>
               </tr>
             </thead>
             <tbody className="bg-white">
               {loading ? (
-                <tr className="h-10 border-b border-gray-100">
-                  <td colSpan="7" className="px-3 py-2 text-center text-sm text-gray-500">Loading contacts...</td>
+                <tr className="h-9 border-b border-gray-200">
+                  <td colSpan="7" className="px-3 py-1.5 text-center text-[13px] text-gray-500">Loading contacts...</td>
                 </tr>
-              ) : filteredContacts.length === 0 ? (
-                <tr className="h-10 border-b border-gray-100">
-                  <td colSpan="7" className="px-3 py-2 text-center text-sm text-gray-500">No contacts found.</td>
+              ) : sortedContacts.length === 0 ? (
+                <tr className="h-9 border-b border-gray-200">
+                  <td colSpan="7" className="px-3 py-1.5 text-center text-[13px] text-gray-500">No contacts found.</td>
                 </tr>
               ) : (
-                filteredContacts.map((contact) => (
-                  <tr
-                    key={contact.id}
-                    onClick={() => setSelectedContact(contact)}
-                    className={`h-10 cursor-pointer border-b border-gray-100 transition-colors hover:bg-gray-50 ${selectedContact?.id === contact.id ? 'bg-blue-50' : ''}`}
-                  >
-                    <td className="px-3 py-2" onClick={(event) => event.stopPropagation()}>
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.has(String(contact.id))}
-                        onChange={() => handleToggleContact(contact.id)}
-                        aria-label={`Select ${contact.name}`}
-                        className="h-4 w-4 rounded border-gray-300 text-blue-600"
-                      />
-                    </td>
-                    <td className="px-3 py-2 text-sm font-medium text-gray-900">{contact.name}</td>
-                    <td className="px-3 py-2 text-sm text-gray-500">{contact.school_name || '—'}</td>
-                    <td className="px-3 py-2"><span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">{contact.role || '—'}</span></td>
-                    <td className="px-3 py-2"><span className={`rounded px-2 py-0.5 text-xs font-medium ${statusBadgeClasses[contact.status || 'New'] || statusBadgeClasses.New}`}>{contact.status || 'New'}</span></td>
-                    <td className="px-3 py-2 text-sm text-gray-500">{contact.assigned_to || 'Unassigned'}</td>
-                    <td className={`px-3 py-2 text-sm font-medium ${followUpColorClasses(isoDate(contact.follow_up_at), today)}`}>{isoDate(contact.follow_up_at) || '—'}</td>
-                  </tr>
-                ))
+                sortedContacts.map((contact) => {
+                  const status = contact.status || 'New'
+                  const statusSaving = savingCells[`${contact.id}:status`]
+                  const assigneeSaving = savingCells[`${contact.id}:assigned_to`]
+
+                  return (
+                    <tr
+                      key={contact.id}
+                      onClick={() => setSelectedContact(contact)}
+                      className={`h-9 cursor-pointer border-b border-gray-200 transition-colors hover:bg-gray-50/80 ${selectedContact?.id === contact.id ? 'bg-blue-50' : ''}`}
+                    >
+                      <td className="border-r border-gray-200 px-3 py-1.5" onClick={(event) => event.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(String(contact.id))}
+                          onChange={() => handleToggleContact(contact.id)}
+                          aria-label={`Select ${contact.name}`}
+                          className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                        />
+                      </td>
+                      <td className="border-r border-gray-200 px-3 py-1.5 text-[13px] font-medium text-gray-900">{contact.name}</td>
+                      <td className="border-r border-gray-200 px-3 py-1.5 text-[13px] text-gray-500">{contact.school_name || '—'}</td>
+                      <td className="border-r border-gray-200 px-3 py-1.5"><span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">{contact.role || '—'}</span></td>
+                      <td className="border-r border-gray-200 px-3 py-1.5">
+                        <select
+                          value={status}
+                          onClick={(event) => event.stopPropagation()}
+                          onChange={(event) => {
+                            event.stopPropagation()
+                            handleInlineContactUpdate(contact, { status: event.target.value }, 'status')
+                          }}
+                          disabled={statusSaving}
+                          className={`appearance-none cursor-pointer rounded border-0 bg-transparent px-2 py-0.5 text-xs font-medium outline-none ${statusBadgeClasses[status] || statusBadgeClasses.New} ${statusSaving ? 'opacity-50 ring-1 ring-blue-200' : ''}`}
+                        >
+                          {statuses.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="border-r border-gray-200 px-3 py-1.5">
+                        <select
+                          value={contact.assigned_to || ''}
+                          onClick={(event) => event.stopPropagation()}
+                          onChange={(event) => {
+                            event.stopPropagation()
+                            handleInlineContactUpdate(contact, { assigned_to: event.target.value || null }, 'assigned_to')
+                          }}
+                          disabled={assigneeSaving}
+                          className={`appearance-none cursor-pointer border-0 bg-transparent text-[13px] text-gray-500 outline-none ${assigneeSaving ? 'opacity-50 ring-1 ring-blue-200' : ''}`}
+                        >
+                          <option value="">Unassigned</option>
+                          {assignees.map((assignee) => (
+                            <option key={assignee} value={assignee}>
+                              {assignee}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className={`px-3 py-1.5 text-[13px] font-medium ${followUpColorClasses(isoDate(contact.follow_up_at), today)}`}>{isoDate(contact.follow_up_at) || '—'}</td>
+                    </tr>
+                  )
+                })
               )}
             </tbody>
           </table>

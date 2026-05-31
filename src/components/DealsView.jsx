@@ -258,23 +258,23 @@ export default function DealsView() {
           </button>
         </div>
 
-        <div className="overflow-hidden rounded-md border border-gray-200 bg-white">
+        <div className="border border-gray-200 overflow-hidden bg-white">
           <table className="min-w-full text-left">
-            <thead className="border-b border-gray-200 bg-gray-50 text-xs font-medium uppercase tracking-wide text-gray-500">
+            <thead className="sticky top-0 z-10 border-b border-gray-300 bg-gray-50 text-xs font-semibold uppercase tracking-wide text-gray-500">
               <tr className="h-9">
-                <th className="px-3 py-2 font-medium">Title</th>
-                <th className="px-3 py-2 font-medium">School</th>
-                <th className="px-3 py-2 font-medium">Contact</th>
-                <th className="px-3 py-2 font-medium">Stage</th>
-                <th className="px-3 py-2 font-medium">Value</th>
-                <th className="px-3 py-2 font-medium">Close Date</th>
+                <th className="border-r border-gray-200 px-3 py-1.5 font-semibold">Title</th>
+                <th className="border-r border-gray-200 px-3 py-1.5 font-semibold">School</th>
+                <th className="border-r border-gray-200 px-3 py-1.5 font-semibold">Contact</th>
+                <th className="border-r border-gray-200 px-3 py-1.5 font-semibold">Stage</th>
+                <th className="border-r border-gray-200 px-3 py-1.5 font-semibold">Value</th>
+                <th className="px-3 py-1.5 font-semibold">Close Date</th>
               </tr>
             </thead>
             <tbody className="bg-white">
               {loading ? (
-                <tr className="h-10 border-b border-gray-100"><td colSpan="6" className="px-3 py-2 text-center text-sm text-gray-500">Loading deals...</td></tr>
+                <tr className="h-9 border-b border-gray-200"><td colSpan="6" className="px-3 py-1.5 text-center text-[13px] text-gray-500">Loading deals...</td></tr>
               ) : deals.length === 0 ? (
-                <tr className="h-10 border-b border-gray-100"><td colSpan="6" className="px-3 py-2 text-center text-sm text-gray-500">No deals found.</td></tr>
+                <tr className="h-9 border-b border-gray-200"><td colSpan="6" className="px-3 py-1.5 text-center text-[13px] text-gray-500">No deals found.</td></tr>
               ) : (
                 deals.map((deal) => (
                   <tr
@@ -283,14 +283,14 @@ export default function DealsView() {
                       setShowNewDealForm(false)
                       setSelectedDeal(deal)
                     }}
-                    className={`h-10 cursor-pointer border-b border-gray-100 transition-colors hover:bg-gray-50 ${selectedDeal?.id === deal.id ? 'bg-blue-50' : ''}`}
+                    className={`h-9 cursor-pointer border-b border-gray-200 transition-colors hover:bg-gray-50/80 ${selectedDeal?.id === deal.id ? 'bg-blue-50' : ''}`}
                   >
-                    <td className="px-3 py-2 text-sm font-medium text-gray-900">{deal.title}</td>
-                    <td className="px-3 py-2 text-sm text-gray-500">{deal.school_name || '—'}</td>
-                    <td className="px-3 py-2 text-sm text-gray-500">{deal.contact_name || '—'}</td>
-                    <td className="px-3 py-2"><span className={`rounded px-2 py-0.5 text-xs font-medium ${stageBadgeClasses[deal.stage] || stageBadgeClasses.Prospecting}`}>{deal.stage}</span></td>
-                    <td className="px-3 py-2 text-sm text-gray-900">{formatCurrency(deal.value)}</td>
-                    <td className="px-3 py-2 text-sm text-gray-500">{formatDate(deal.close_date)}</td>
+                    <td className="border-r border-gray-200 px-3 py-1.5 text-[13px] font-medium text-gray-900">{deal.title}</td>
+                    <td className="border-r border-gray-200 px-3 py-1.5 text-[13px] text-gray-500">{deal.school_name || '—'}</td>
+                    <td className="border-r border-gray-200 px-3 py-1.5 text-[13px] text-gray-500">{deal.contact_name || '—'}</td>
+                    <td className="border-r border-gray-200 px-3 py-1.5"><span className={`rounded px-2 py-0.5 text-xs font-medium ${stageBadgeClasses[deal.stage] || stageBadgeClasses.Prospecting}`}>{deal.stage}</span></td>
+                    <td className="border-r border-gray-200 px-3 py-1.5 text-[13px] text-gray-900">{formatCurrency(deal.value)}</td>
+                    <td className="px-3 py-1.5 text-[13px] text-gray-500">{formatDate(deal.close_date)}</td>
                   </tr>
                 ))
               )}

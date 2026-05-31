@@ -127,6 +127,7 @@ function locationText(contact) {
 
 export default function CallQueue() {
   const [queue, setQueue] = useState([])
+  const [allCallContacts, setAllCallContacts] = useState([])
   const [selectedContact, setSelectedContact] = useState(null)
   const [activitiesByContact, setActivitiesByContact] = useState({})
   const [callsToday, setCallsToday] = useState(0)
@@ -135,6 +136,7 @@ export default function CallQueue() {
   const [notes, setNotes] = useState('')
   const [error, setError] = useState('')
   const [pendingFollowUp, setPendingFollowUp] = useState(null)
+  const [selectedState, setSelectedState] = useState('')
 
   useEffect(() => {
     let active = true
@@ -150,12 +152,14 @@ export default function CallQueue() {
         ])
         const data = contactsResponse.ok ? await contactsResponse.json() : []
         const todayData = todayResponse.ok ? await todayResponse.json() : {}
-        const callQueue = sortQueue(data.filter((contact) => contact.assigned_to === 'Calls' && (contact.status || 'New') !== 'Closed'))
+        const callContacts = data.filter((contact) => contact.assigned_to === 'Calls' && (contact.status || 'New') !== 'Closed')
+        const callQueue = sortQueue(callContacts)
 
         if (!active) {
           return
         }
 
+        setAllCallContacts(callQueue)
         setQueue(callQueue)
         setSelectedContact(callQueue[0] || null)
         setCallsToday(Number(todayData.call_count) || 0)
@@ -211,12 +215,23 @@ export default function CallQueue() {
   const selectedActivities = selectedContact ? activitiesByContact[String(selectedContact.id)] || [] : []
   const recentCalls = selectedActivities.filter((activity) => activity.type === 'call').slice(0, 5)
 
+  const availableStates = useMemo(() => {
+    const states = new Set(allCallContacts.map((c) => c.state).filter(Boolean))
+    return Array.from(states).sort()
+  }, [allCallContacts])
+
+  const filteredQueue = useMemo(() => {
+    if (!selectedState) return queue
+    return queue.filter((c) => c.state === selectedState)
+  }, [queue, selectedState])
+
   function advanceQueue(contactId) {
     setQueue((current) => {
-      const contactIndex = current.findIndex((contact) => String(contact.id) === String(contactId))
       const nextQueue = current.filter((contact) => String(contact.id) !== String(contactId))
-      const nextContact = nextQueue[contactIndex] || nextQueue[contactIndex - 1] || nextQueue[0] || null
-      setSelectedContact(nextContact)
+      const filtered = selectedState ? nextQueue.filter((c) => c.state === selectedState) : nextQueue
+      const prevIndex = current.findIndex((contact) => String(contact.id) === String(contactId))
+      const nextFiltered = filtered[prevIndex] || filtered[prevIndex - 1] || filtered[0] || null
+      setSelectedContact(nextFiltered)
       return nextQueue
     })
   }
@@ -316,7 +331,24 @@ export default function CallQueue() {
       <section className="min-w-0 flex-1 p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-semibold text-gray-900">Call Queue</h1>
-          <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">{queue.length} remaining</span>
+          <div className="flex items-center gap-2">
+            {availableStates.length > 1 ? (
+              <select
+                value={selectedState}
+                onChange={(e) => {
+                  setSelectedState(e.target.value)
+                  setSelectedContact(null)
+                }}
+                className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 outline-none"
+              >
+                <option value="">All States</option>
+                {availableStates.map((state) => (
+                  <option key={state} value={state}>{state}</option>
+                ))}
+              </select>
+            ) : null}
+            <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">{filteredQueue.length} remaining</span>
+          </div>
         </div>
 
         <div className="mb-4 rounded-md border border-gray-200 bg-white p-4">
@@ -334,13 +366,13 @@ export default function CallQueue() {
         <div className="max-h-[calc(100vh-220px)] overflow-y-auto rounded-md border border-gray-200 bg-white">
           {loading ? (
             <div className="p-6 text-center text-sm text-gray-500">Loading call queue...</div>
-          ) : queue.length === 0 ? (
+          ) : filteredQueue.length === 0 ? (
             <div className="flex min-h-64 items-center justify-center p-6 text-center text-sm font-medium text-gray-500">
-              Queue clear — no more calls to make today 🎉
+              {selectedState ? `No contacts in ${selectedState}` : 'Queue clear — no more calls to make today 🎉'}
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
-              {queue.map((contact) => {
+              {filteredQueue.map((contact) => {
                 const followUpAt = isoDate(contact.follow_up_at)
 
                 return (

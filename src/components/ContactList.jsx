@@ -7,6 +7,7 @@ const roles = ['HC', 'AD', 'OC', 'DC', 'STC', 'QB', 'WR', 'RB', 'OL', 'DL', 'DB'
 const filterRoles = ['HC', 'AD', 'OC', 'DC', 'STC']
 const assignees = ['Email', 'Calls', 'DMs']
 const statuses = ['New', 'Emailed', 'Called', 'Responded', 'Closed']
+const levels = ['HS', 'FCS', 'FBS', 'NFL']
 const statusSortOrder = statuses.reduce((order, status, index) => ({ ...order, [status]: index }), {})
 
 const statusBadgeClasses = {
@@ -103,6 +104,8 @@ export default function ContactList() {
   const [selectedRoles, setSelectedRoles] = useState([])
   const [selectedAssignees, setSelectedAssignees] = useState([])
   const [selectedStatuses, setSelectedStatuses] = useState([])
+  const [selectedStates, setSelectedStates] = useState([])
+  const [selectedLevels, setSelectedLevels] = useState([])
   const [showDueToday, setShowDueToday] = useState(() => new URLSearchParams(location.search).get('filter') === 'overdue')
   const [loading, setLoading] = useState(true)
   const [bulkStatus, setBulkStatus] = useState(statuses[0])
@@ -137,6 +140,11 @@ export default function ContactList() {
     }
   }, [])
 
+  const availableStates = useMemo(() => {
+    const states = new Set(contacts.map((c) => c.state).filter(Boolean))
+    return Array.from(states).sort()
+  }, [contacts])
+
   const filteredContacts = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
 
@@ -153,10 +161,12 @@ export default function ContactList() {
       const matchesStatus = selectedStatuses.length === 0 || selectedStatuses.includes(contactStatus)
       const followUpAt = isoDate(contact.follow_up_at)
       const matchesDueToday = !showDueToday || (followUpAt && followUpAt <= today)
+      const matchesState = selectedStates.length === 0 || selectedStates.includes(contact.state)
+      const matchesLevel = selectedLevels.length === 0 || selectedLevels.includes(contact.school_level)
 
-      return matchesSearch && matchesRole && matchesAssignee && matchesStatus && matchesDueToday
+      return matchesSearch && matchesRole && matchesAssignee && matchesStatus && matchesDueToday && matchesState && matchesLevel
     })
-  }, [contacts, search, selectedRoles, selectedAssignees, selectedStatuses, showDueToday])
+  }, [contacts, search, selectedRoles, selectedAssignees, selectedStatuses, showDueToday, selectedStates, selectedLevels])
 
 
   const sortedContacts = useMemo(() => {
@@ -448,6 +458,30 @@ export default function ContactList() {
               {role}
             </button>
           ))}
+          <span className="mx-1 h-6 border-l border-gray-200" />
+          {levels.map((level) => (
+            <button
+              key={level}
+              type="button"
+              onClick={() => setSelectedLevels((current) => toggleValue(current, level))}
+              className={selectedLevels.includes(level) ? activePill : inactivePill}
+            >
+              {level}
+            </button>
+          ))}
+          <span className="mx-1 h-6 border-l border-gray-200" />
+          {availableStates.length > 0 ? (
+            <select
+              value={selectedStates[0] || ''}
+              onChange={(e) => setSelectedStates(e.target.value ? [e.target.value] : [])}
+              className="h-[26px] rounded border border-gray-300 bg-white px-2 text-xs font-medium text-gray-600 outline-none"
+            >
+              <option value="">All States</option>
+              {availableStates.map((state) => (
+                <option key={state} value={state}>{state}</option>
+              ))}
+            </select>
+          ) : null}
           <span className="mx-1 h-6 border-l border-gray-200" />
           {assignees.map((assignee) => (
             <button

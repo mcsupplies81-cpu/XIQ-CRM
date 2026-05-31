@@ -37,6 +37,7 @@ export default async function handler(req, res) {
         schools.name as school_name,
         schools.city,
         schools.state,
+        schools.level as school_level,
         (SELECT MAX(a.created_at) FROM activities a WHERE a.contact_id = contacts.id) as last_contacted_at,
         (SELECT COUNT(*)::int FROM activities a WHERE a.contact_id = contacts.id AND a.type = 'call') as call_count
       FROM contacts
@@ -104,7 +105,7 @@ export default async function handler(req, res) {
     `
 
     const contactRows = await sql`
-      SELECT contacts.*, schools.name as school_name, schools.city, schools.state
+      SELECT contacts.*, schools.name as school_name, schools.city, schools.state, schools.level as school_level
       FROM contacts
       LEFT JOIN schools ON contacts.school_id = schools.id
       WHERE contacts.id = ${insertedRows[0].id}

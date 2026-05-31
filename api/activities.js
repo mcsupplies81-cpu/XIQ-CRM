@@ -37,7 +37,7 @@ export default async function handler(req, res) {
       SELECT * FROM activities
       WHERE contact_id = ${contact_id}
       ORDER BY created_at DESC
-      LIMIT 5
+      LIMIT 50
     `
 
     return res.status(200).json(activities)

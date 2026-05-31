@@ -49,6 +49,34 @@ export default async function handler(req, res) {
     LIMIT 10
   `
 
+  const overdueFollowUps = await sql`
+    SELECT contacts.id, contacts.name, contacts.follow_up_at, contacts.assigned_to, schools.name as school_name
+    FROM contacts
+    LEFT JOIN schools ON contacts.school_id = schools.id
+    WHERE contacts.follow_up_at < CURRENT_DATE AND contacts.status != 'Closed'
+    ORDER BY contacts.follow_up_at ASC
+    LIMIT 5
+  `
+
+  const staleDeals = await sql`
+    SELECT deals.id, deals.title, deals.stage, deals.value, deals.updated_at, schools.name as school_name
+    FROM deals
+    LEFT JOIN schools ON deals.school_id = schools.id
+    WHERE deals.stage NOT IN ('Closed Won', 'Closed Lost')
+      AND deals.updated_at < NOW() - INTERVAL '7 days'
+    ORDER BY deals.updated_at ASC
+    LIMIT 5
+  `
+
+  const activityTodayRows = await sql`
+    SELECT
+      count(*) FILTER (WHERE type = 'call')::int as calls_today,
+      count(*) FILTER (WHERE type = 'dm')::int as dms_today,
+      count(*) FILTER (WHERE type = 'email')::int as emails_today
+    FROM activities
+    WHERE created_at >= CURRENT_DATE
+  `
+
   const contactsByStatus = contactStatuses.reduce((summary, status) => ({ ...summary, [status]: 0 }), {})
 
   contactsByStatusRows.forEach((row) => {
@@ -61,5 +89,12 @@ export default async function handler(req, res) {
     total_deals: Number(dealSummaryRows[0]?.total_deals) || 0,
     open_deals: Number(dealSummaryRows[0]?.open_deals) || 0,
     recent_activities: recentActivities,
+    overdue_follow_ups: overdueFollowUps,
+    stale_deals: staleDeals,
+    activity_today: {
+      calls_today: Number(activityTodayRows[0]?.calls_today) || 0,
+      dms_today: Number(activityTodayRows[0]?.dms_today) || 0,
+      emails_today: Number(activityTodayRows[0]?.emails_today) || 0,
+    },
   })
 }

@@ -16,6 +16,7 @@ export const statusBadgeClasses = {
 const activePill = 'rounded border border-gray-900 bg-gray-900 px-2.5 py-1 text-xs font-medium text-white transition-colors'
 const inactivePill = 'rounded border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50'
 const dueTodayActivePill = 'rounded border border-rose-600 bg-rose-600 px-2.5 py-1 text-xs font-medium text-white transition-colors'
+const emptyAddForm = { name: '', school_name: '', role: '', assigned_to: '' }
 
 function isoDate(value) {
   return value ? String(value).slice(0, 10) : ''
@@ -68,6 +69,10 @@ export default function ContactList() {
   const [loading, setLoading] = useState(true)
   const [bulkStatus, setBulkStatus] = useState(statuses[0])
   const [bulkUpdating, setBulkUpdating] = useState(false)
+  const [showAddRow, setShowAddRow] = useState(false)
+  const [addForm, setAddForm] = useState(emptyAddForm)
+  const [addError, setAddError] = useState('')
+  const [addingContact, setAddingContact] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -180,6 +185,44 @@ export default function ContactList() {
       setSelectedIds(new Set())
     } finally {
       setBulkUpdating(false)
+    }
+  }
+
+  function handleAddFormChange(field, value) {
+    setAddForm((current) => ({ ...current, [field]: value }))
+    setAddError('')
+  }
+
+  function handleCancelAdd() {
+    setShowAddRow(false)
+    setAddForm(emptyAddForm)
+    setAddError('')
+  }
+
+  async function handleAddContact(event) {
+    event.preventDefault()
+    setAddError('')
+    setAddingContact(true)
+
+    try {
+      const response = await fetch('/api/contacts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(addForm),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to add contact')
+      }
+
+      const createdContact = addSchool(await response.json())
+      setContacts((current) => [createdContact, ...current])
+      setAddForm(emptyAddForm)
+      setShowAddRow(false)
+    } catch (error) {
+      setAddError('Failed to add.')
+    } finally {
+      setAddingContact(false)
     }
   }
 
@@ -300,6 +343,67 @@ export default function ContactList() {
               )}
             </tbody>
           </table>
+          {showAddRow ? (
+            <form onSubmit={handleAddContact} className="flex h-9 items-center gap-2 border-t border-gray-100 bg-white px-3 py-1 text-sm">
+              <div className="w-7 shrink-0" />
+              <input
+                type="text"
+                required
+                value={addForm.name}
+                onChange={(event) => handleAddFormChange('name', event.target.value)}
+                placeholder="Name"
+                className="h-7 min-w-0 flex-1 rounded border border-gray-200 px-2 text-sm text-gray-900 outline-none focus:border-gray-400"
+              />
+              <input
+                type="text"
+                value={addForm.school_name}
+                onChange={(event) => handleAddFormChange('school_name', event.target.value)}
+                placeholder="School"
+                className="h-7 w-44 rounded border border-gray-200 px-2 text-sm text-gray-900 outline-none focus:border-gray-400"
+              />
+              <select
+                value={addForm.role}
+                onChange={(event) => handleAddFormChange('role', event.target.value)}
+                className="h-7 w-24 rounded border border-gray-200 bg-white px-2 text-sm text-gray-900 outline-none focus:border-gray-400"
+              >
+                <option value="">Role</option>
+                {roles.map((role) => (
+                  <option key={role} value={role}>{role}</option>
+                ))}
+              </select>
+              <select
+                value={addForm.assigned_to}
+                onChange={(event) => handleAddFormChange('assigned_to', event.target.value)}
+                className="h-7 w-32 rounded border border-gray-200 bg-white px-2 text-sm text-gray-900 outline-none focus:border-gray-400"
+              >
+                <option value="">Assigned To</option>
+                {assignees.map((assignee) => (
+                  <option key={assignee} value={assignee}>{assignee}</option>
+                ))}
+              </select>
+              <button
+                type="submit"
+                disabled={addingContact}
+                className="h-7 rounded bg-gray-900 px-3 text-xs font-medium text-white transition-colors hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+              >
+                {addingContact ? 'Adding...' : 'Add'}
+              </button>
+              <button type="button" onClick={handleCancelAdd} className="px-1 text-lg leading-none text-gray-400 hover:text-gray-700" aria-label="Cancel add contact">
+                ×
+              </button>
+              {addError ? <span className="text-xs font-medium text-red-600">{addError}</span> : null}
+            </form>
+          ) : (
+            <div className="border-t border-gray-100 bg-white">
+              <button
+                type="button"
+                onClick={() => setShowAddRow(true)}
+                className="px-3 py-2 text-left text-[13px] text-gray-400 transition-colors hover:text-gray-700"
+              >
+                + Add contact
+              </button>
+            </div>
+          )}
         </div>
 
         {selectedIds.size > 0 ? (

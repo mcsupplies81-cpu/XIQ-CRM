@@ -111,7 +111,8 @@ export default function PipelineView() {
   return (
     <div className="min-h-screen bg-white p-6">
       <div className="mb-5">
-        <h1 className="text-2xl font-semibold text-gray-900">Pipeline</h1>
+        <h1 className="text-2xl font-semibold text-gray-900">Contact Board</h1>
+        <p className="mt-1 text-sm text-gray-500">Contacts organized by outreach status. Drag to move between stages.</p>
       </div>
 
       {loading ? (

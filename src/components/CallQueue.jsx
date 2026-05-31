@@ -134,6 +134,7 @@ export default function CallQueue() {
   const [actionLoading, setActionLoading] = useState(false)
   const [notes, setNotes] = useState('')
   const [error, setError] = useState('')
+  const [pendingFollowUp, setPendingFollowUp] = useState(null)
 
   useEffect(() => {
     let active = true
@@ -241,9 +242,7 @@ export default function CallQueue() {
   }
 
   async function handleOutcome(outcome) {
-    if (!selectedContact || actionLoading) {
-      return
-    }
+    if (!selectedContact || actionLoading) return
 
     setActionLoading(true)
     setError('')
@@ -256,18 +255,40 @@ export default function CallQueue() {
         body: JSON.stringify({ status: nextStatus }),
       })
 
-      if (!patchResponse.ok) {
-        throw new Error('Failed to update contact')
-      }
+      if (!patchResponse.ok) throw new Error('Failed to update contact')
 
       await postCallActivity(selectedContact.id, outcome.notes)
       setCallsToday((n) => n + 1)
-      advanceQueue(selectedContact.id)
+
+      if (outcome.status === 'Closed') {
+        advanceQueue(selectedContact.id)
+      } else {
+        setPendingFollowUp({ contactId: selectedContact.id, name: selectedContact.name })
+      }
     } catch (actionError) {
       setError('Unable to save the call outcome.')
     } finally {
       setActionLoading(false)
     }
+  }
+
+  async function handleScheduleFollowUp(days) {
+    if (!pendingFollowUp) return
+    const { contactId } = pendingFollowUp
+
+    if (days !== null) {
+      const date = new Date()
+      date.setDate(date.getDate() + days)
+      const isoDate = date.toISOString().slice(0, 10)
+      await fetch(`/api/contacts/${contactId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ follow_up_at: isoDate }),
+      })
+    }
+
+    setPendingFollowUp(null)
+    advanceQueue(contactId)
   }
 
   async function handleLogCall(event) {
@@ -397,19 +418,49 @@ export default function CallQueue() {
               </div>
             </dl>
 
-            <div className="grid grid-cols-4 gap-2">
-              {outcomes.map((outcome) => (
-                <button
-                  key={outcome.label}
-                  type="button"
-                  onClick={() => handleOutcome(outcome)}
-                  disabled={actionLoading}
-                  className={`rounded px-4 py-2 text-sm font-medium text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${outcomeButtonClasses[outcome.label]}`}
-                >
-                  {outcome.label}
-                </button>
-              ))}
-            </div>
+            {pendingFollowUp ? (
+              <div className="rounded border border-amber-200 bg-amber-50 p-4">
+                <p className="mb-3 text-sm font-semibold text-amber-900">Call back {pendingFollowUp.name} when?</p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: 'Tomorrow', days: 1 },
+                    { label: '+3 days', days: 3 },
+                    { label: '+1 week', days: 7 },
+                    { label: '+2 weeks', days: 14 },
+                  ].map(({ label, days }) => (
+                    <button
+                      key={days}
+                      type="button"
+                      onClick={() => handleScheduleFollowUp(days)}
+                      className="rounded bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-700"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => handleScheduleFollowUp(null)}
+                    className="rounded border border-amber-300 px-3 py-1.5 text-sm font-medium text-amber-700 hover:bg-amber-100"
+                  >
+                    Skip
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-4 gap-2">
+                {outcomes.map((outcome) => (
+                  <button
+                    key={outcome.label}
+                    type="button"
+                    onClick={() => handleOutcome(outcome)}
+                    disabled={actionLoading}
+                    className={`rounded px-4 py-2 text-sm font-medium text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${outcomeButtonClasses[outcome.label]}`}
+                  >
+                    {outcome.label}
+                  </button>
+                ))}
+              </div>
+            )}
 
             <form onSubmit={handleLogCall} className="space-y-3">
               <textarea

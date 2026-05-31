@@ -178,14 +178,26 @@ export default function Dashboard() {
       </section>
 
       <section className="rounded border border-gray-200 bg-white p-5 shadow-sm">
-        <p className="text-sm font-medium text-gray-700">
-          Today:{' '}
-          <span className="font-semibold text-green-600">{Number(activityToday.calls_today) || 0} calls</span>
-          <span className="text-gray-400"> · </span>
-          <span className="font-semibold text-sky-600">{Number(activityToday.dms_today) || 0} DMs</span>
-          <span className="text-gray-400"> · </span>
-          <span className="font-semibold text-blue-600">{Number(activityToday.emails_today) || 0} emails</span>
-        </p>
+        <h2 className="mb-4 text-sm font-semibold text-gray-900">Team today</h2>
+        <div className="space-y-4">
+          {[
+            { name: 'Malcolm', label: 'calls', count: Number(activityToday.calls_today) || 0, goal: 20, color: 'bg-green-500' },
+            { name: 'Garrett', label: 'DMs', count: Number(activityToday.dms_today) || 0, goal: 50, color: 'bg-sky-500' },
+          ].map(({ name, label, count, goal, color }) => (
+            <div key={name}>
+              <div className="mb-1.5 flex items-center justify-between text-sm">
+                <span className="font-medium text-gray-700">{name} <span className="font-normal text-gray-400">· {label}</span></span>
+                <span className="tabular-nums text-gray-500">{count} <span className="text-gray-400">/ {goal}</span></span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-gray-100">
+                <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${Math.min(100, (count / goal) * 100)}%` }} />
+              </div>
+            </div>
+          ))}
+          <p className="pt-1 text-sm text-gray-500">
+            Emails today: <span className="font-semibold text-blue-600">{Number(activityToday.emails_today) || 0}</span>
+          </p>
+        </div>
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2">
@@ -198,7 +210,7 @@ export default function Dashboard() {
               <div className="px-5 py-6 text-sm font-medium text-green-600">No overdue follow-ups ✓</div>
             ) : (
               overdueFollowUps.map((contact) => (
-                <Link key={contact.id} to="/contacts" className="block px-5 py-4 transition-colors hover:bg-gray-50">
+                <Link key={contact.id} to="/contacts?filter=overdue" className="block px-5 py-4 transition-colors hover:bg-gray-50">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-sm font-semibold text-gray-900">{contact.name}</p>

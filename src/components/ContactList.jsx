@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import Avatar from './Avatar.jsx'
 import ContactDetail from './ContactDetail.jsx'
 
@@ -60,6 +61,7 @@ function toggleValue(values, value) {
 }
 
 export default function ContactList() {
+  const location = useLocation()
   const [contacts, setContacts] = useState([])
   const [selectedContact, setSelectedContact] = useState(null)
   const [selectedIds, setSelectedIds] = useState(() => new Set())
@@ -67,9 +69,10 @@ export default function ContactList() {
   const [selectedRoles, setSelectedRoles] = useState([])
   const [selectedAssignees, setSelectedAssignees] = useState([])
   const [selectedStatuses, setSelectedStatuses] = useState([])
-  const [showDueToday, setShowDueToday] = useState(false)
+  const [showDueToday, setShowDueToday] = useState(() => new URLSearchParams(location.search).get('filter') === 'overdue')
   const [loading, setLoading] = useState(true)
   const [bulkStatus, setBulkStatus] = useState(statuses[0])
+  const [bulkAssignTo, setBulkAssignTo] = useState('')
   const [bulkUpdating, setBulkUpdating] = useState(false)
   const [sortKey, setSortKey] = useState(null)
   const [sortDir, setSortDir] = useState('asc')
@@ -190,6 +193,16 @@ export default function ContactList() {
     })
   }
 
+  function handleContactDeleted(contactId) {
+    setContacts((current) => current.filter((contact) => String(contact.id) !== String(contactId)))
+    setSelectedContact(null)
+    setSelectedIds((current) => {
+      const next = new Set(current)
+      next.delete(String(contactId))
+      return next
+    })
+  }
+
   function handleToggleAllVisible() {
     setSelectedIds((current) => {
       const next = new Set(current)
@@ -278,31 +291,45 @@ export default function ContactList() {
     )
   }
 
-  async function handleBulkStatusUpdate(event) {
+  async function handleBulkUpdate(event) {
     event.preventDefault()
-
-    if (selectedIds.size === 0) {
-      return
-    }
+    if (selectedIds.size === 0) return
 
     const ids = Array.from(selectedIds)
     setBulkUpdating(true)
 
     try {
+      const payload = { ids }
+      if (bulkStatus) payload.status = bulkStatus
+      if (bulkAssignTo) payload.assigned_to = bulkAssignTo
+
       const response = await fetch('/api/contacts/bulk', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids, status: bulkStatus }),
+        body: JSON.stringify(payload),
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to update contacts')
-      }
+      if (!response.ok) throw new Error('Failed to update contacts')
 
       const updatedIds = new Set(ids)
-      setContacts((current) => current.map((contact) => (updatedIds.has(String(contact.id)) ? { ...contact, status: bulkStatus } : contact)))
-      setSelectedContact((current) => (current && updatedIds.has(String(current.id)) ? { ...current, status: bulkStatus } : current))
+      setContacts((current) => current.map((contact) => {
+        if (!updatedIds.has(String(contact.id))) return contact
+        return {
+          ...contact,
+          ...(bulkStatus ? { status: bulkStatus } : {}),
+          ...(bulkAssignTo ? { assigned_to: bulkAssignTo } : {}),
+        }
+      }))
+      setSelectedContact((current) => {
+        if (!current || !updatedIds.has(String(current.id))) return current
+        return {
+          ...current,
+          ...(bulkStatus ? { status: bulkStatus } : {}),
+          ...(bulkAssignTo ? { assigned_to: bulkAssignTo } : {}),
+        }
+      })
       setSelectedIds(new Set())
+      setBulkAssignTo('')
     } finally {
       setBulkUpdating(false)
     }
@@ -574,28 +601,33 @@ export default function ContactList() {
 
         {selectedIds.size > 0 ? (
           <form
-            onSubmit={handleBulkStatusUpdate}
-            className="sticky bottom-0 mt-4 flex items-center justify-between gap-3 border-t border-gray-200 bg-white px-4 py-3 shadow-md"
+            onSubmit={handleBulkUpdate}
+            className="sticky bottom-0 mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 bg-white px-4 py-3 shadow-md"
           >
-            <span className="text-sm font-medium text-gray-700">{selectedIds.size} contacts selected</span>
-            <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-700">{selectedIds.size} selected</span>
+            <div className="flex flex-wrap items-center gap-2">
               <select
                 value={bulkStatus}
                 onChange={(event) => setBulkStatus(event.target.value)}
                 className="rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none"
               >
-                {statuses.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
+                <option value="">— Status —</option>
+                {statuses.map((status) => <option key={status} value={status}>{status}</option>)}
+              </select>
+              <select
+                value={bulkAssignTo}
+                onChange={(event) => setBulkAssignTo(event.target.value)}
+                className="rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none"
+              >
+                <option value="">— Assign to —</option>
+                {assignees.map((a) => <option key={a} value={a}>{a}</option>)}
               </select>
               <button
                 type="submit"
-                disabled={bulkUpdating}
+                disabled={bulkUpdating || (!bulkStatus && !bulkAssignTo)}
                 className="rounded bg-gray-900 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-400"
               >
-                {bulkUpdating ? 'Updating...' : 'Update Status'}
+                {bulkUpdating ? 'Updating...' : 'Apply'}
               </button>
             </div>
           </form>
@@ -603,7 +635,7 @@ export default function ContactList() {
       </section>
 
       {selectedContact ? (
-        <ContactDetail contact={selectedContact} onClose={() => setSelectedContact(null)} onContactUpdated={handleContactUpdated} />
+        <ContactDetail contact={selectedContact} onClose={() => setSelectedContact(null)} onContactUpdated={handleContactUpdated} onContactDeleted={handleContactDeleted} />
       ) : null}
     </div>
   )

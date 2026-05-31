@@ -26,36 +26,60 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Unauthorized' })
   }
 
-  if (req.method !== 'PATCH') {
-    res.setHeader('Allow', 'PATCH')
-    return res.status(405).json({ error: 'Method not allowed' })
-  }
-
   const { id } = req.query
-  const { status, assigned_to, notes, follow_up_at } = await readBody(req)
-  const hasStatus = status !== undefined
-  const hasAssignedTo = assigned_to !== undefined
-  const hasNotes = notes !== undefined
-  const hasFollowUpAt = follow_up_at !== undefined
 
-  if (!hasStatus && !hasAssignedTo && !hasNotes && !hasFollowUpAt) {
-    return res.status(400).json({ error: 'No fields provided' })
+  if (req.method === 'DELETE') {
+    const deletedRows = await sql`
+      DELETE FROM contacts WHERE id = ${id} RETURNING id
+    `
+
+    if (deletedRows.length === 0) {
+      return res.status(404).json({ error: 'Contact not found' })
+    }
+
+    return res.status(200).json({ id: deletedRows[0].id })
   }
 
-  const updatedRows = await sql`
-    UPDATE contacts
-    SET
-      status = CASE WHEN ${hasStatus} THEN ${hasStatus ? status : null} ELSE status END,
-      assigned_to = CASE WHEN ${hasAssignedTo} THEN ${hasAssignedTo ? assigned_to : null} ELSE assigned_to END,
-      notes = CASE WHEN ${hasNotes} THEN ${hasNotes ? notes : null} ELSE notes END,
-      follow_up_at = CASE WHEN ${hasFollowUpAt} THEN ${hasFollowUpAt ? follow_up_at : null} ELSE follow_up_at END
-    WHERE id = ${id}
-    RETURNING *
-  `
+  if (req.method === 'PATCH') {
+    const body = await readBody(req)
+    const has = (f) => Object.prototype.hasOwnProperty.call(body, f)
+    const hasStatus = has('status')
+    const hasAssignedTo = has('assigned_to')
+    const hasNotes = has('notes')
+    const hasFollowUpAt = has('follow_up_at')
+    const hasName = has('name')
+    const hasEmail = has('email')
+    const hasPhone = has('phone')
+    const hasRole = has('role')
+    const hasXHandle = has('x_handle')
 
-  if (updatedRows.length === 0) {
-    return res.status(404).json({ error: 'Contact not found' })
+    if (!hasStatus && !hasAssignedTo && !hasNotes && !hasFollowUpAt && !hasName && !hasEmail && !hasPhone && !hasRole && !hasXHandle) {
+      return res.status(400).json({ error: 'No fields provided' })
+    }
+
+    const updatedRows = await sql`
+      UPDATE contacts
+      SET
+        status       = CASE WHEN ${hasStatus}      THEN ${hasStatus      ? body.status      : null} ELSE status       END,
+        assigned_to  = CASE WHEN ${hasAssignedTo}  THEN ${hasAssignedTo  ? body.assigned_to : null} ELSE assigned_to  END,
+        notes        = CASE WHEN ${hasNotes}        THEN ${hasNotes       ? body.notes       : null} ELSE notes        END,
+        follow_up_at = CASE WHEN ${hasFollowUpAt}  THEN ${hasFollowUpAt  ? body.follow_up_at|| null : null} ELSE follow_up_at END,
+        name         = CASE WHEN ${hasName}         THEN ${hasName        ? body.name        : null} ELSE name         END,
+        email        = CASE WHEN ${hasEmail}        THEN ${hasEmail       ? body.email || null : null} ELSE email        END,
+        phone        = CASE WHEN ${hasPhone}        THEN ${hasPhone       ? body.phone || null : null} ELSE phone        END,
+        role         = CASE WHEN ${hasRole}         THEN ${hasRole        ? body.role  || null : null} ELSE role         END,
+        x_handle     = CASE WHEN ${hasXHandle}      THEN ${hasXHandle     ? body.x_handle || null : null} ELSE x_handle     END
+      WHERE id = ${id}
+      RETURNING *
+    `
+
+    if (updatedRows.length === 0) {
+      return res.status(404).json({ error: 'Contact not found' })
+    }
+
+    return res.status(200).json(updatedRows[0])
   }
 
-  return res.status(200).json(updatedRows[0])
+  res.setHeader('Allow', 'PATCH, DELETE')
+  return res.status(405).json({ error: 'Method not allowed' })
 }

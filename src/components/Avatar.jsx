@@ -7,14 +7,14 @@ function colorForName(name) {
   return COLORS[code % COLORS.length]
 }
 function initials(name) {
-  const parts = (name || '').trim().split(/\s+/)
-  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-  return (name || '').slice(0, 2).toUpperCase()
+  const words = (name || '').trim().split(/\s+/).filter(Boolean)
+  if (words.length >= 2) return (words[0][0] + words[words.length - 1][0]).toUpperCase()
+  return (name || '').slice(0, 2).toUpperCase() || '—'
 }
 export default function Avatar({ name, size = 'sm' }) {
   const sizeClass = size === 'sm' ? 'h-7 w-7 text-xs' : 'h-9 w-9 text-sm'
   return (
-    <div className={`${sizeClass} ${colorForName(name)} flex shrink-0 items-center justify-center rounded-full font-semibold text-white`}>
+    <div className={`${sizeClass} ${colorForName(name)} flex shrink-0 items-center justify-center rounded-full font-semibold text-white`} aria-label={name ? `${name} avatar` : 'Avatar'}>
       {initials(name)}
     </div>
   )

@@ -6,13 +6,15 @@ import Avatar from './Avatar.jsx'
 
 const dealStages = ['Prospecting', 'Qualified', 'Proposal', 'Negotiation', 'Closed Won', 'Closed Lost']
 
-const stageBadgeClasses = {
-  Prospecting: 'bg-gray-100 text-gray-700',
-  Qualified: 'bg-purple-100 text-purple-700',
-  Proposal: 'bg-blue-100 text-blue-700',
-  Negotiation: 'bg-amber-100 text-amber-700',
-  'Closed Won': 'bg-emerald-100 text-emerald-700',
-  'Closed Lost': 'bg-red-100 text-red-700',
+const stageHeaderClasses = {
+  Prospect: 'bg-violet-600',
+  Prospecting: 'bg-violet-600',
+  'Meeting Scheduled': 'bg-orange-500',
+  Qualified: 'bg-orange-500',
+  'Proposal Sent': 'bg-blue-600',
+  Proposal: 'bg-blue-600',
+  'Closed Won': 'bg-green-600',
+  'Closed Lost': 'bg-gray-500',
 }
 
 function groupDeals(deals) {
@@ -41,12 +43,16 @@ function dealProbability(deal) {
   return Math.min(100, Math.max(0, probability))
 }
 
-function formatCurrency(value) {
-  if (value === null || value === undefined || value === '') {
-    return '—'
+function formatDealValue(value) {
+  return value ? `$${Number(value).toLocaleString()}` : '—'
+}
+
+function formatCloseDate(value) {
+  if (!value) {
+    return ''
   }
 
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(Number(value))
+  return new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 function formatTotal(value) {
@@ -82,18 +88,24 @@ function DealCard({ deal }) {
   }
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="mb-2 cursor-grab rounded border border-gray-200 bg-white p-3 shadow-sm transition-colors hover:border-gray-300">
-      <div className="flex items-start gap-2.5">
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="mb-3 cursor-grab rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-shadow hover:shadow-md">
+      <div className="flex items-center gap-3">
         <Avatar name={deal.school_name || deal.title} />
-        <div className="min-w-0">
-          <div className="truncate text-sm font-medium text-gray-900">{deal.title}</div>
-          <div className="mt-1 truncate text-xs text-gray-500">{deal.school_name || '—'}</div>
+        <div className="min-w-0 text-sm font-semibold text-gray-900">{deal.title}</div>
+      </div>
+
+      <div className="mt-4 space-y-2">
+        <div className="flex items-center gap-2 text-xs text-gray-500">
+          <span className="text-gray-400" aria-hidden="true">$</span>
+          <span>{formatDealValue(deal.value)}</span>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-gray-500">
+          <span className="text-gray-400" aria-hidden="true">⌂</span>
+          <span>{deal.school_name || '—'}</span>
         </div>
       </div>
-      <div className="mt-3 flex items-center justify-between gap-3">
-        <span className="text-sm font-semibold text-gray-900">{formatCurrency(deal.value)}</span>
-        <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">{dealProbability(deal)}%</span>
-      </div>
+
+      {deal.close_date ? <div className="mt-4 border-t border-gray-100 pt-3 text-xs text-gray-500">{formatCloseDate(deal.close_date)}</div> : null}
     </div>
   )
 }
@@ -101,21 +113,22 @@ function DealCard({ deal }) {
 function DealsPipelineColumn({ stage, deals }) {
   const { setNodeRef } = useDroppable({ id: stage })
   const totals = calculateTotals(deals)
+  const stageColor = stageHeaderClasses[stage] || 'bg-gray-600'
 
   return (
-    <section ref={setNodeRef} className="flex min-h-[540px] w-64 shrink-0 flex-col rounded-md border border-gray-200 bg-gray-50 p-3">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <span className={`rounded px-2 py-0.5 text-xs font-medium ${stageBadgeClasses[stage]}`}>{stage}</span>
-        <span className="text-xs text-gray-500">{deals.length}</span>
+    <section ref={setNodeRef} className="flex min-h-[540px] min-w-[260px] shrink-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white">
+      <div className={`${stageColor} rounded-t-lg px-4 py-3 flex items-center justify-between`}>
+        <span className="text-sm font-bold text-white">{stage}</span>
+        <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-semibold text-white">{deals.length}</span>
       </div>
       <SortableContext items={deals.map((deal) => String(deal.id))} strategy={verticalListSortingStrategy}>
-        <div className="flex-1">
+        <div className="flex-1 p-3">
           {deals.map((deal) => (
             <DealCard key={deal.id} deal={deal} />
           ))}
         </div>
       </SortableContext>
-      <div className="mt-3 border-t border-gray-200 pt-3 text-xs text-gray-600">
+      <div className="mx-3 mb-3 border-t border-gray-200 pt-3 text-xs text-gray-600">
         <div className="flex items-center justify-between gap-3">
           <span>Total:</span>
           <span className="font-semibold text-gray-900">{formatTotal(totals.value)}</span>
@@ -234,7 +247,7 @@ export default function DealsPipeline() {
         <div className="rounded-md border border-gray-200 bg-white p-6 text-center text-sm text-gray-500">Loading deals pipeline...</div>
       ) : (
         <DndContext onDragEnd={handleDragEnd}>
-          <div className="flex gap-3 overflow-x-auto pb-4">
+          <div className="flex gap-4 overflow-x-auto pb-4">
             {dealStages.map((stage) => (
               <DealsPipelineColumn key={stage} stage={stage} deals={groupedDeals[stage]} />
             ))}

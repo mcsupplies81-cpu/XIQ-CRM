@@ -64,10 +64,10 @@ export default async function handler(req, res) {
 
       const schoolRows = await sql`
         INSERT INTO schools (name, city, state)
-        VALUES (${schoolName}, ${city}, ${state})
+        VALUES (${schoolName}, ${city || null}, ${state || null})
         ON CONFLICT (name) DO UPDATE SET
-          city = EXCLUDED.city,
-          state = EXCLUDED.state
+          city  = COALESCE(EXCLUDED.city,  schools.city),
+          state = COALESCE(EXCLUDED.state, schools.state)
         RETURNING id
       `
 

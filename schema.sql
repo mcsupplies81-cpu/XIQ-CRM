@@ -48,3 +48,12 @@ drop trigger if exists contacts_updated_at on contacts;
 create trigger contacts_updated_at
   before update on contacts
   for each row execute function update_updated_at();
+
+-- Foreign-key and filter indexes (queries join/filter on these constantly)
+create index if not exists idx_contacts_school_id on contacts(school_id);
+create index if not exists idx_contacts_status on contacts(status);
+create index if not exists idx_contacts_follow_up_at on contacts(follow_up_at);
+create index if not exists idx_activities_contact_id on activities(contact_id);
+create index if not exists idx_activities_created_at on activities(created_at);
+create index if not exists idx_deals_school_id on deals(school_id);
+create index if not exists idx_deals_stage on deals(stage);

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   closestCenter,
   DndContext,
@@ -23,9 +23,13 @@ function groupContacts(contacts) {
 }
 
 function ContactCardBody({ contact }) {
+  const isApptSet = contact.last_activity_notes?.toLowerCase().includes('appointment set')
   return (
     <>
-      <div className="text-sm font-medium text-gray-900">{contact.name}</div>
+      <div className="flex items-start justify-between gap-1">
+        <div className="text-sm font-medium leading-snug text-gray-900">{contact.name}</div>
+        {isApptSet ? <span className="shrink-0 rounded bg-green-100 px-1.5 py-0.5 text-xs font-semibold text-green-700">Appt ✓</span> : null}
+      </div>
       <div className="mt-1 text-xs text-gray-500">{contact.school_name || '—'}</div>
     </>
   )
@@ -100,26 +104,37 @@ export default function PipelineView() {
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
   )
 
-  useEffect(() => {
-    let active = true
-
-    async function loadContacts() {
-      setLoading(true)
-      const response = await fetch('/api/contacts')
-      const data = response.ok ? await response.json() : []
-
-      if (active) {
-        setContacts(data)
-        setLoading(false)
-      }
-    }
-
-    loadContacts()
-
-    return () => {
-      active = false
+  const fetchContacts = useCallback(async () => {
+    const response = await fetch('/api/contacts')
+    if (response.ok) {
+      const data = await response.json()
+      setContacts(data)
     }
   }, [])
+
+  // Initial load — show loading spinner
+  useEffect(() => {
+    let active = true
+    setLoading(true)
+    fetchContacts()
+      .then(() => { if (active) setLoading(false) })
+      .catch(() => { if (active) setLoading(false) })
+    return () => { active = false }
+  }, [fetchContacts])
+
+  // Live sync: silently refresh every 60s + whenever the tab regains focus
+  // This means Malcolm's "Appointment Set" shows up on Cameron's board automatically
+  useEffect(() => {
+    const interval = setInterval(fetchContacts, 60_000)
+    function onVisible() {
+      if (document.visibilityState === 'visible') fetchContacts()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      clearInterval(interval)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [fetchContacts])
 
   const groupedContacts = useMemo(() => groupContacts(contacts), [contacts])
 

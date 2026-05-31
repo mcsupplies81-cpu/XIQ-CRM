@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import StatusDot from './StatusDot.jsx'
 
@@ -102,42 +102,36 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  const fetchDashboard = useCallback(async () => {
+    const response = await fetch('/api/dashboard')
+    if (!response.ok) throw new Error('Unable to load dashboard')
+    const data = await response.json()
+    setDashboard(data)
+    setError('')
+  }, [])
+
+  // Initial load
   useEffect(() => {
     let active = true
+    setLoading(true)
+    fetchDashboard()
+      .then(() => { if (active) setLoading(false) })
+      .catch((e) => { if (active) { setError(e.message); setLoading(false) } })
+    return () => { active = false }
+  }, [fetchDashboard])
 
-    async function loadDashboard() {
-      setLoading(true)
-      setError('')
-
-      try {
-        const response = await fetch('/api/dashboard')
-
-        if (!response.ok) {
-          throw new Error('Unable to load dashboard')
-        }
-
-        const data = await response.json()
-
-        if (active) {
-          setDashboard(data)
-        }
-      } catch (loadError) {
-        if (active) {
-          setError(loadError.message)
-        }
-      } finally {
-        if (active) {
-          setLoading(false)
-        }
-      }
+  // Auto-refresh every 30s + on tab focus so Malcolm/Garrett's progress shows live
+  useEffect(() => {
+    const interval = setInterval(fetchDashboard, 30_000)
+    function onVisible() {
+      if (document.visibilityState === 'visible') fetchDashboard().catch(() => {})
     }
-
-    loadDashboard()
-
+    document.addEventListener('visibilitychange', onVisible)
     return () => {
-      active = false
+      clearInterval(interval)
+      document.removeEventListener('visibilitychange', onVisible)
     }
-  }, [])
+  }, [fetchDashboard])
 
   const contactsByStatus = dashboard?.contacts_by_status || {}
   const totalContacts = useMemo(() => statuses.reduce((total, status) => total + (Number(contactsByStatus[status]) || 0), 0), [contactsByStatus])

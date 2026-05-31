@@ -39,7 +39,9 @@ export default async function handler(req, res) {
         schools.state,
         schools.level as school_level,
         (SELECT MAX(a.created_at) FROM activities a WHERE a.contact_id = contacts.id) as last_contacted_at,
-        (SELECT COUNT(*)::int FROM activities a WHERE a.contact_id = contacts.id AND a.type = 'call') as call_count
+        (SELECT COUNT(*)::int FROM activities a WHERE a.contact_id = contacts.id AND a.type = 'call') as call_count,
+        (SELECT a.type FROM activities a WHERE a.contact_id = contacts.id ORDER BY a.created_at DESC LIMIT 1) as last_activity_type,
+        (SELECT a.notes FROM activities a WHERE a.contact_id = contacts.id ORDER BY a.created_at DESC LIMIT 1) as last_activity_notes
       FROM contacts
       LEFT JOIN schools ON contacts.school_id = schools.id
       ORDER BY contacts.created_at DESC

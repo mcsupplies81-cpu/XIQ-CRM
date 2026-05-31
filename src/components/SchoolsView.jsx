@@ -87,7 +87,7 @@ export default function SchoolsView() {
       const matchesSearch =
         !normalizedSearch ||
         school.name.toLowerCase().includes(normalizedSearch) ||
-        school.city.toLowerCase().includes(normalizedSearch)
+        school.city?.toLowerCase().includes(normalizedSearch)
       const matchesState = selectedStates.length === 0 || selectedStates.includes(school.state)
       const matchesDivision = selectedDivisions.length === 0 || selectedDivisions.includes(school.division)
 

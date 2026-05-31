@@ -1,5 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
-import { DndContext, useDroppable } from '@dnd-kit/core'
+import {
+  closestCenter,
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  TouchSensor,
+  useDroppable,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import StatusDot from './StatusDot.jsx'
@@ -13,32 +22,65 @@ function groupContacts(contacts) {
   }, {})
 }
 
+function ContactCardBody({ contact }) {
+  return (
+    <>
+      <div className="text-sm font-medium text-gray-900">{contact.name}</div>
+      <div className="mt-1 text-xs text-gray-500">{contact.school_name || '—'}</div>
+    </>
+  )
+}
+
 function PipelineCard({ contact }) {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: String(contact.id) })
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: String(contact.id),
+  })
+
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition: transition ?? 'transform 200ms ease',
   }
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="mb-2 cursor-grab rounded border border-gray-200 bg-white p-3 transition-colors hover:border-gray-300">
-      <div className="text-sm font-medium text-gray-900">{contact.name}</div>
-      <div className="mt-1 text-xs text-gray-500">{contact.school_name || '—'}</div>
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`mb-2 cursor-grab touch-none select-none rounded border border-gray-200 bg-white p-3 transition-opacity ${
+        isDragging ? 'opacity-30' : 'hover:border-gray-300'
+      }`}
+    >
+      <ContactCardBody contact={contact} />
+    </div>
+  )
+}
+
+function DragOverlayCard({ contact }) {
+  return (
+    <div className="w-56 cursor-grabbing rounded border border-blue-300 bg-white p-3 shadow-xl ring-1 ring-blue-200">
+      <ContactCardBody contact={contact} />
     </div>
   )
 }
 
 function PipelineColumn({ status, contacts }) {
-  const { setNodeRef } = useDroppable({ id: status })
+  const { setNodeRef, isOver } = useDroppable({ id: status })
 
   return (
-    <section ref={setNodeRef} className="min-h-[500px] w-56 shrink-0 rounded-md border border-gray-200 bg-white p-3">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <StatusDot status={status} />
-        <span className="text-xs text-gray-500">{contacts.length}</span>
+    <section
+      className={`flex min-h-[500px] w-56 shrink-0 flex-col rounded-md border transition-colors ${
+        isOver ? 'border-blue-400 bg-blue-50' : 'border-gray-200 bg-white'
+      }`}
+    >
+      <div className="shrink-0 px-3 pt-3 pb-0">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <StatusDot status={status} />
+          <span className="text-xs text-gray-500">{contacts.length}</span>
+        </div>
       </div>
-      <SortableContext items={contacts.map((contact) => String(contact.id))} strategy={verticalListSortingStrategy}>
-        <div>
+      <SortableContext items={contacts.map((c) => String(c.id))} strategy={verticalListSortingStrategy}>
+        <div ref={setNodeRef} className="flex-1 px-3 pb-3">
           {contacts.map((contact) => (
             <PipelineCard key={contact.id} contact={contact} />
           ))}
@@ -51,6 +93,12 @@ function PipelineColumn({ status, contacts }) {
 export default function PipelineView() {
   const [contacts, setContacts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [activeContact, setActiveContact] = useState(null)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
+  )
 
   useEffect(() => {
     let active = true
@@ -76,26 +124,36 @@ export default function PipelineView() {
   const groupedContacts = useMemo(() => groupContacts(contacts), [contacts])
 
   function findContactStatus(contactId, groups) {
-    return statuses.find((status) => groups[status].some((contact) => String(contact.id) === String(contactId)))
+    return statuses.find((status) => groups[status].some((c) => String(c.id) === String(contactId)))
+  }
+
+  function handleDragStart(event) {
+    const found = contacts.find((c) => String(c.id) === String(event.active.id))
+    setActiveContact(found || null)
+  }
+
+  function handleDragCancel() {
+    setActiveContact(null)
   }
 
   async function handleDragEnd(event) {
     const { active, over } = event
+    setActiveContact(null)
 
-    if (!over) {
-      return
-    }
+    if (!over) return
 
     const contactId = String(active.id)
-    const targetColumn = statuses.includes(String(over.id)) ? String(over.id) : findContactStatus(over.id, groupedContacts)
-    const activeContact = contacts.find((contact) => String(contact.id) === contactId)
+    const targetColumn = statuses.includes(String(over.id))
+      ? String(over.id)
+      : findContactStatus(over.id, groupedContacts)
+    const activeContactObj = contacts.find((c) => String(c.id) === contactId)
 
-    if (!targetColumn || !activeContact || activeContact.status === targetColumn) {
-      return
-    }
+    if (!targetColumn || !activeContactObj || activeContactObj.status === targetColumn) return
 
     const previousContacts = contacts
-    setContacts((current) => current.map((contact) => (String(contact.id) === contactId ? { ...contact, status: targetColumn } : contact)))
+    setContacts((current) =>
+      current.map((c) => (String(c.id) === contactId ? { ...c, status: targetColumn } : c)),
+    )
 
     const response = await fetch(`/api/contacts/${contactId}`, {
       method: 'PATCH',
@@ -116,14 +174,25 @@ export default function PipelineView() {
       </div>
 
       {loading ? (
-        <div className="rounded-md border border-gray-200 bg-white p-6 text-center text-sm text-gray-500">Loading pipeline...</div>
+        <div className="rounded-md border border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
+          Loading pipeline...
+        </div>
       ) : (
-        <DndContext onDragEnd={handleDragEnd}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDragCancel={handleDragCancel}
+        >
           <div className="flex gap-3 overflow-x-auto pb-4">
             {statuses.map((status) => (
               <PipelineColumn key={status} status={status} contacts={groupedContacts[status]} />
             ))}
           </div>
+          <DragOverlay dropAnimation={{ duration: 150, easing: 'ease' }}>
+            {activeContact ? <DragOverlayCard contact={activeContact} /> : null}
+          </DragOverlay>
         </DndContext>
       )}
     </div>

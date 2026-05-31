@@ -6,6 +6,7 @@ const navItems = [
   { to: '/contacts', label: 'Contacts', indicator: 'bg-blue-400' },
   { to: '/deals', label: 'Deals', indicator: 'bg-violet-400' },
   { to: '/pipeline', label: 'Pipeline', indicator: 'bg-amber-400' },
+  { to: '/templates', label: 'Templates', indicator: 'bg-teal-400' },
   { to: '/import', label: 'Import', indicator: 'bg-gray-400' },
 ]
 

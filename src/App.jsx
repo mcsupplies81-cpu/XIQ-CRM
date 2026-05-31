@@ -7,6 +7,7 @@ import ContactList from './components/ContactList.jsx'
 import DealsView from './components/DealsView.jsx'
 import PipelineView from './components/PipelineView.jsx'
 import ImportPage from './components/ImportPage.jsx'
+import TemplatesPage from './components/TemplatesPage.jsx'
 
 export default function App() {
   const { isLoaded, isSignedIn } = useAuth()
@@ -42,6 +43,7 @@ export default function App() {
           <Route path="/contacts" element={<ContactList />} />
           <Route path="/deals" element={<DealsView />} />
           <Route path="/pipeline" element={<PipelineView />} />
+          <Route path="/templates" element={<TemplatesPage />} />
           <Route path="/import" element={<ImportPage />} />
           <Route path="*" element={<Navigate to="/schools" replace />} />
         </Routes>

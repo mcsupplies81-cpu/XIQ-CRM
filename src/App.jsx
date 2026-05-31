@@ -4,6 +4,7 @@ import LoginPage from './components/LoginPage.jsx'
 import Sidebar from './components/Sidebar.jsx'
 import SchoolsView from './components/SchoolsView.jsx'
 import ContactList from './components/ContactList.jsx'
+import CallQueue from './components/CallQueue.jsx'
 import DealsView from './components/DealsView.jsx'
 import DealsPipeline from './components/DealsPipeline.jsx'
 import PipelineView from './components/PipelineView.jsx'
@@ -44,6 +45,7 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/schools" element={<SchoolsView />} />
           <Route path="/contacts" element={<ContactList />} />
+          <Route path="/calls" element={<CallQueue />} />
           <Route path="/deals" element={<DealsView />} />
           <Route path="/deals-pipeline" element={<DealsPipeline />} />
           <Route path="/pipeline" element={<PipelineView />} />

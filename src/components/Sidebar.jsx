@@ -5,6 +5,7 @@ const navItems = [
   { to: '/dashboard', label: 'Dashboard', indicator: 'bg-rose-400' },
   { to: '/schools', label: 'Schools', indicator: 'bg-emerald-400' },
   { to: '/contacts', label: 'Contacts', indicator: 'bg-blue-400' },
+  { to: '/calls', label: 'Call Queue', indicator: 'bg-green-400' },
   { to: '/deals', label: 'Deals', indicator: 'bg-violet-400' },
   { to: '/deals-pipeline', label: 'Deals Board', indicator: 'bg-orange-400' },
   { to: '/pipeline', label: 'Pipeline', indicator: 'bg-amber-400' },

@@ -7,6 +7,7 @@ import ContactList from './components/ContactList.jsx'
 import DealsView from './components/DealsView.jsx'
 import PipelineView from './components/PipelineView.jsx'
 import ImportPage from './components/ImportPage.jsx'
+import Dashboard from './components/Dashboard.jsx'
 
 export default function App() {
   const { isLoaded, isSignedIn } = useAuth()
@@ -21,7 +22,7 @@ export default function App() {
   }
 
   if (isSignedIn && location.pathname === '/login') {
-    return <Navigate to="/schools" replace />
+    return <Navigate to="/dashboard" replace />
   }
 
   if (!isSignedIn) {
@@ -38,12 +39,13 @@ export default function App() {
       <Sidebar />
       <main className="min-w-0 flex-1">
         <Routes>
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/schools" element={<SchoolsView />} />
           <Route path="/contacts" element={<ContactList />} />
           <Route path="/deals" element={<DealsView />} />
           <Route path="/pipeline" element={<PipelineView />} />
           <Route path="/import" element={<ImportPage />} />
-          <Route path="*" element={<Navigate to="/schools" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </main>
     </div>

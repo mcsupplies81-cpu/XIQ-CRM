@@ -10,6 +10,7 @@ const navItems = [
   { to: '/deals-pipeline', label: 'Deals Board', indicator: 'bg-orange-400' },
   { to: '/pipeline', label: 'Pipeline', indicator: 'bg-amber-400' },
   { to: '/templates', label: 'Templates', indicator: 'bg-teal-400' },
+  { to: '/dms', label: 'DM Queue', indicator: 'bg-sky-400' },
   { to: '/import', label: 'Import', indicator: 'bg-gray-400' },
 ]
 

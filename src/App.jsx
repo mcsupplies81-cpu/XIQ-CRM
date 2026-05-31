@@ -11,6 +11,7 @@ import PipelineView from './components/PipelineView.jsx'
 import ImportPage from './components/ImportPage.jsx'
 import Dashboard from './components/Dashboard.jsx'
 import TemplatesPage from './components/TemplatesPage.jsx'
+import DMQueue from './components/DMQueue.jsx'
 
 export default function App() {
   const { isLoaded, isSignedIn } = useAuth()
@@ -50,6 +51,7 @@ export default function App() {
           <Route path="/deals-pipeline" element={<DealsPipeline />} />
           <Route path="/pipeline" element={<PipelineView />} />
           <Route path="/templates" element={<TemplatesPage />} />
+          <Route path="/dms" element={<DMQueue />} />
           <Route path="/import" element={<ImportPage />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>

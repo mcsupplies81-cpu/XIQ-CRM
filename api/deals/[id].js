@@ -52,8 +52,9 @@ export default async function handler(req, res) {
     const hasCloseDate = Object.prototype.hasOwnProperty.call(body, 'close_date')
     const hasNotes = Object.prototype.hasOwnProperty.call(body, 'notes')
     const hasProbability = Object.prototype.hasOwnProperty.call(body, 'probability')
+    const hasNextAction = Object.prototype.hasOwnProperty.call(body, 'next_action')
 
-    if (!hasStage && !hasTitle && !hasValue && !hasCloseDate && !hasNotes && !hasProbability) {
+    if (!hasStage && !hasTitle && !hasValue && !hasCloseDate && !hasNotes && !hasProbability && !hasNextAction) {
       return res.status(400).json({ error: 'No fields provided' })
     }
 
@@ -65,7 +66,8 @@ export default async function handler(req, res) {
         value = CASE WHEN ${hasValue} THEN ${hasValue && body.value !== '' ? body.value : null} ELSE value END,
         close_date = CASE WHEN ${hasCloseDate} THEN ${hasCloseDate && body.close_date ? body.close_date : null} ELSE close_date END,
         notes = CASE WHEN ${hasNotes} THEN ${hasNotes ? body.notes : null} ELSE notes END,
-        probability = CASE WHEN ${hasProbability} THEN ${hasProbability && body.probability !== '' ? body.probability : null} ELSE probability END
+        probability = CASE WHEN ${hasProbability} THEN ${hasProbability && body.probability !== '' ? body.probability : null} ELSE probability END,
+        next_action = CASE WHEN ${hasNextAction} THEN ${hasNextAction ? body.next_action || null : null} ELSE next_action END
       WHERE id = ${id}
       RETURNING *
     `

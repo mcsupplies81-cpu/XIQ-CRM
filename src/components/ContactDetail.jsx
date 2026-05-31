@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 
 const statuses = ['New', 'Emailed', 'Called', 'Responded', 'Closed']
 const assignees = ['Email', 'Calls', 'DMs']
-const roles = ['HC', 'AD', 'OC']
+const roles = ['HC', 'AD', 'OC', 'DC', 'STC', 'QB', 'WR', 'RB', 'OL', 'DL', 'DB', 'LB', 'TE', 'ST']
 
 const activityTypeClasses = {
   call: 'bg-amber-100 text-amber-700',
@@ -84,7 +84,7 @@ export default function ContactDetail({ contact, onClose, onContactUpdated, onCo
   const [templates, setTemplates] = useState([])
   const [templatesLoading, setTemplatesLoading] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
-  const [editForm, setEditForm] = useState({ name: contact.name || '', email: contact.email || '', phone: contact.phone || '', role: contact.role || '', x_handle: contact.x_handle || '' })
+  const [editForm, setEditForm] = useState({ name: contact.name || '', email: contact.email || '', phone: contact.phone || '', role: contact.role || '', x_handle: contact.x_handle || '', linkedin_url: contact.linkedin_url || '' })
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [showNewDeal, setShowNewDeal] = useState(false)
@@ -101,7 +101,7 @@ export default function ContactDetail({ contact, onClose, onContactUpdated, onCo
     setFollowUpAt(dateInputValue(contact.follow_up_at))
     setShowFollowUpSaved(false)
     setIsEditing(false)
-    setEditForm({ name: contact.name || '', email: contact.email || '', phone: contact.phone || '', role: contact.role || '', x_handle: contact.x_handle || '' })
+    setEditForm({ name: contact.name || '', email: contact.email || '', phone: contact.phone || '', role: contact.role || '', x_handle: contact.x_handle || '', linkedin_url: contact.linkedin_url || '' })
     setShowDeleteConfirm(false)
     setShowNewDeal(false)
     if (followUpSavedTimeout.current) clearTimeout(followUpSavedTimeout.current)
@@ -234,6 +234,7 @@ export default function ContactDetail({ contact, onClose, onContactUpdated, onCo
         phone: editForm.phone.trim() || null,
         role: editForm.role || null,
         x_handle: editForm.x_handle.trim() || null,
+        linkedin_url: editForm.linkedin_url.trim() || null,
       })
       setIsEditing(false)
     } catch {
@@ -334,9 +335,13 @@ export default function ContactDetail({ contact, onClose, onContactUpdated, onCo
               <span className="text-xs font-medium uppercase tracking-wide text-gray-500">Email</span>
               <input type="email" value={editForm.email} onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))} className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none" />
             </label>
-            <label className="col-span-2 block">
+            <label className="block">
               <span className="text-xs font-medium uppercase tracking-wide text-gray-500">X Handle</span>
               <input value={editForm.x_handle} onChange={(e) => setEditForm((f) => ({ ...f, x_handle: e.target.value }))} placeholder="@handle" className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none" />
+            </label>
+            <label className="block">
+              <span className="text-xs font-medium uppercase tracking-wide text-gray-500">LinkedIn</span>
+              <input value={editForm.linkedin_url} onChange={(e) => setEditForm((f) => ({ ...f, linkedin_url: e.target.value }))} placeholder="linkedin.com/in/..." className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none" />
             </label>
           </div>
           <div className="flex items-center gap-2">
@@ -384,6 +389,12 @@ export default function ContactDetail({ contact, onClose, onContactUpdated, onCo
               <div className="text-xs font-medium uppercase tracking-wide text-gray-500">Location</div>
               <div className="mt-1 text-gray-900">{location}</div>
             </div>
+            {contact.linkedin_url ? (
+              <div className="col-span-2">
+                <div className="text-xs font-medium uppercase tracking-wide text-gray-500">LinkedIn</div>
+                <a href={contact.linkedin_url.startsWith('http') ? contact.linkedin_url : `https://${contact.linkedin_url}`} target="_blank" rel="noreferrer" className="mt-1 block truncate text-sm text-blue-600 hover:underline">{contact.linkedin_url}</a>
+              </div>
+            ) : null}
           </div>
         </section>
       )}
@@ -464,6 +475,7 @@ export default function ContactDetail({ contact, onClose, onContactUpdated, onCo
                 <div className="flex flex-wrap items-center gap-2">
                   <span className={`rounded px-2 py-0.5 text-xs font-medium uppercase ${activityTypeClasses[activity.type] || 'bg-gray-100 text-gray-700'}`}>{activity.type}</span>
                   <span className="text-xs text-gray-500">{formatRelativeTime(activity.created_at)}</span>
+                  {activity.created_by ? <span className="text-xs font-medium text-gray-400">{activity.created_by}</span> : null}
                 </div>
                 <p className="mt-1 text-gray-900">{activity.notes || '—'}</p>
               </div>

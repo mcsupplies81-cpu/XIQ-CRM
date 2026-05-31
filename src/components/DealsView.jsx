@@ -1,6 +1,29 @@
 import { useEffect, useMemo, useState } from 'react'
 import DealDetail from './DealDetail.jsx'
 
+function exportDealsCSV(deals) {
+  const headers = ['Title', 'School', 'Contact', 'Stage', 'Value', 'Close Date', 'Next Action']
+  const rows = deals.map((d) => [
+    d.title,
+    d.school_name || '',
+    d.contact_name || '',
+    d.stage || '',
+    d.value ?? '',
+    d.close_date ? String(d.close_date).slice(0, 10) : '',
+    d.next_action || '',
+  ])
+  const csvContent = [headers, ...rows]
+    .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    .join('\n')
+  const blob = new Blob([csvContent], { type: 'text/csv' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `deals-${new Date().toISOString().slice(0, 10)}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 const stages = ['Prospecting', 'Proposal', 'Negotiation', 'Closed Won', 'Closed Lost']
 
 const stageBadgeClasses = {
@@ -246,16 +269,26 @@ export default function DealsView() {
       <section className="min-w-0 flex-1 p-6">
         <div className="mb-5 flex items-center justify-between gap-4">
           <h1 className="text-2xl font-semibold text-gray-900">Deals</h1>
-          <button
-            type="button"
-            onClick={() => {
-              setSelectedDeal(null)
-              setShowNewDealForm(true)
-            }}
-            className="rounded bg-gray-900 px-3 py-1.5 text-sm text-white transition-colors hover:bg-gray-800"
-          >
-            New Deal
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => exportDealsCSV(deals)}
+              disabled={deals.length === 0}
+              className="rounded border border-gray-300 px-3 py-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Export CSV
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedDeal(null)
+                setShowNewDealForm(true)
+              }}
+              className="rounded bg-gray-900 px-3 py-1.5 text-sm text-white transition-colors hover:bg-gray-800"
+            >
+              New Deal
+            </button>
+          </div>
         </div>
 
         <div className="border border-gray-200 overflow-hidden bg-white">
@@ -267,14 +300,15 @@ export default function DealsView() {
                 <th className="border-r border-gray-200 px-3 py-1.5 font-semibold">Contact</th>
                 <th className="border-r border-gray-200 px-3 py-1.5 font-semibold">Stage</th>
                 <th className="border-r border-gray-200 px-3 py-1.5 font-semibold">Value</th>
-                <th className="px-3 py-1.5 font-semibold">Close Date</th>
+                <th className="border-r border-gray-200 px-3 py-1.5 font-semibold">Close Date</th>
+                <th className="px-3 py-1.5 font-semibold">Next Action</th>
               </tr>
             </thead>
             <tbody className="bg-white">
               {loading ? (
-                <tr className="h-9 border-b border-gray-200"><td colSpan="6" className="px-3 py-1.5 text-center text-[13px] text-gray-500">Loading deals...</td></tr>
+                <tr className="h-9 border-b border-gray-200"><td colSpan="7" className="px-3 py-1.5 text-center text-[13px] text-gray-500">Loading deals...</td></tr>
               ) : deals.length === 0 ? (
-                <tr className="h-9 border-b border-gray-200"><td colSpan="6" className="px-3 py-1.5 text-center text-[13px] text-gray-500">No deals found.</td></tr>
+                <tr className="h-9 border-b border-gray-200"><td colSpan="7" className="px-3 py-1.5 text-center text-[13px] text-gray-500">No deals found.</td></tr>
               ) : (
                 deals.map((deal) => (
                   <tr
@@ -290,7 +324,8 @@ export default function DealsView() {
                     <td className="border-r border-gray-200 px-3 py-1.5 text-[13px] text-gray-500">{deal.contact_name || '—'}</td>
                     <td className="border-r border-gray-200 px-3 py-1.5"><span className={`rounded px-2 py-0.5 text-xs font-medium ${stageBadgeClasses[deal.stage] || stageBadgeClasses.Prospecting}`}>{deal.stage}</span></td>
                     <td className="border-r border-gray-200 px-3 py-1.5 text-[13px] text-gray-900">{formatCurrency(deal.value)}</td>
-                    <td className="px-3 py-1.5 text-[13px] text-gray-500">{formatDate(deal.close_date)}</td>
+                    <td className="border-r border-gray-200 px-3 py-1.5 text-[13px] text-gray-500">{formatDate(deal.close_date)}</td>
+                    <td className="px-3 py-1.5 text-[13px] text-gray-500">{deal.next_action || '—'}</td>
                   </tr>
                 ))
               )}

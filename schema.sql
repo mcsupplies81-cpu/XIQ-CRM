@@ -13,13 +13,15 @@ create table if not exists contacts (
   id uuid default gen_random_uuid() primary key,
   school_id uuid references schools(id),
   name text not null,
-  role text check (role in ('HC', 'AD', 'OC')),
+  role text check (role in ('HC', 'AD', 'OC', 'DC', 'STC', 'QB', 'WR', 'RB', 'OL', 'DL', 'DB', 'LB', 'TE', 'ST')),
   email text unique,
   phone text,
   x_handle text,
+  linkedin_url text,
   status text default 'New' check (status in ('New', 'Emailed', 'Called', 'Responded', 'Closed')),
   assigned_to text check (assigned_to in ('Email', 'Calls', 'DMs')),
   notes text,
+  follow_up_at date,
   created_at timestamp default now(),
   updated_at timestamp default now()
 );

@@ -32,8 +32,13 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     const contacts = await sql`
-      -- contacts.* includes follow_up_at after the add_follow_up migration is applied.
-      SELECT contacts.*, schools.name as school_name, schools.city, schools.state
+      SELECT
+        contacts.*,
+        schools.name as school_name,
+        schools.city,
+        schools.state,
+        (SELECT MAX(a.created_at) FROM activities a WHERE a.contact_id = contacts.id) as last_contacted_at,
+        (SELECT COUNT(*)::int FROM activities a WHERE a.contact_id = contacts.id AND a.type = 'call') as call_count
       FROM contacts
       LEFT JOIN schools ON contacts.school_id = schools.id
       ORDER BY contacts.created_at DESC

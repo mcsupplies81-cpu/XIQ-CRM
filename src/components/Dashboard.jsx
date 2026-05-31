@@ -65,6 +65,11 @@ function formatDaysAgo(value) {
   return `${Math.max(0, days)} days ago`
 }
 
+function formatCurrency(value) {
+  if (!value) return '$0'
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(Number(value))
+}
+
 function truncateNotes(notes) {
   if (!notes) {
     return '—'
@@ -139,6 +144,8 @@ export default function Dashboard() {
   const activityToday = dashboard?.activity_today || {}
   const overdueFollowUps = dashboard?.overdue_follow_ups || []
   const staleDeals = dashboard?.stale_deals || []
+  const pipelineByStage = dashboard?.pipeline_by_stage || []
+  const totalPipelineValue = useMemo(() => pipelineByStage.reduce((sum, row) => sum + Number(row.total_value), 0), [pipelineByStage])
 
   if (loading) {
     return <LoadingSkeleton />
@@ -176,6 +183,33 @@ export default function Dashboard() {
         <StatCard label="Total Contacts" value={totalContacts} />
         <StatCard label="Open Deals" value={dashboard.open_deals} />
       </section>
+
+      {pipelineByStage.length > 0 ? (
+        <section className="rounded border border-gray-200 bg-white p-5 shadow-sm">
+          <div className="mb-4 flex items-center justify-between gap-4">
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900">Pipeline by Stage</h2>
+              <p className="text-sm text-gray-500">{formatCurrency(totalPipelineValue)} open pipeline</p>
+            </div>
+            <Link to="/deals" className="text-sm text-blue-600 hover:underline">View all deals →</Link>
+          </div>
+          <div className="space-y-3">
+            {pipelineByStage.map((row) => (
+              <div key={row.stage} className="flex items-center justify-between gap-4 text-sm">
+                <span className="w-36 font-medium text-gray-700">{row.stage}</span>
+                <div className="flex-1 overflow-hidden rounded-full bg-gray-100">
+                  <div
+                    className="h-2 rounded-full bg-violet-500 transition-all"
+                    style={{ width: totalPipelineValue ? `${Math.min(100, (Number(row.total_value) / totalPipelineValue) * 100)}%` : '0%' }}
+                  />
+                </div>
+                <span className="w-24 text-right text-gray-500">{formatCurrency(row.total_value)}</span>
+                <span className="w-16 text-right text-gray-400">{row.deal_count} deal{row.deal_count !== 1 ? 's' : ''}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="rounded border border-gray-200 bg-white p-5 shadow-sm">
         <h2 className="mb-4 text-sm font-semibold text-gray-900">Team today</h2>

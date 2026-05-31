@@ -5,8 +5,6 @@ const clerk = createClerkClient({
   publishableKey: process.env.VITE_CLERK_PUBLISHABLE_KEY,
 })
 
-// Authenticates a Vercel/Node serverless request using Clerk.
-// Returns the userId string, or null if the request is unauthenticated.
 export async function getUserId(req) {
   const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost'
   const proto = req.headers['x-forwarded-proto'] || 'https'
@@ -18,4 +16,15 @@ export async function getUserId(req) {
   const requestState = await clerk.authenticateRequest(request)
   const auth = requestState.toAuth()
   return auth?.userId || null
+}
+
+export async function getUserDisplayName(userId) {
+  if (!userId) return null
+  try {
+    const user = await clerk.users.getUser(userId)
+    const name = [user.firstName, user.lastName].filter(Boolean).join(' ')
+    return name || user.emailAddresses?.[0]?.emailAddress || userId
+  } catch {
+    return userId
+  }
 }

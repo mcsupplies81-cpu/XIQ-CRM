@@ -360,6 +360,9 @@ export default function CallQueue() {
                       </div>
                       <div className="flex shrink-0 flex-wrap justify-end gap-1">
                         <span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">{contact.role || '—'}</span>
+                        {contact.call_count > 0 ? (
+                          <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">{contact.call_count} calls</span>
+                        ) : null}
                         <StatusDot status={contact.status} />
                       </div>
                     </div>

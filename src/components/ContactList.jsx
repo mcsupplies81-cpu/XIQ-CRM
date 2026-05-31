@@ -3,7 +3,8 @@ import { useLocation } from 'react-router-dom'
 import Avatar from './Avatar.jsx'
 import ContactDetail from './ContactDetail.jsx'
 
-const roles = ['HC', 'AD', 'OC']
+const roles = ['HC', 'AD', 'OC', 'DC', 'STC', 'QB', 'WR', 'RB', 'OL', 'DL', 'DB', 'LB', 'TE', 'ST']
+const filterRoles = ['HC', 'AD', 'OC', 'DC', 'STC']
 const assignees = ['Email', 'Calls', 'DMs']
 const statuses = ['New', 'Emailed', 'Called', 'Responded', 'Closed']
 const statusSortOrder = statuses.reduce((order, status, index) => ({ ...order, [status]: index }), {})
@@ -23,6 +24,39 @@ const emptyAddForm = { name: '', school_name: '', role: '', assigned_to: '' }
 
 function isoDate(value) {
   return value ? String(value).slice(0, 10) : ''
+}
+
+function formatDate(value) {
+  const d = isoDate(value)
+  if (!d) return '—'
+  return new Date(`${d}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+function exportContactsCSV(contacts) {
+  const headers = ['Name', 'School', 'Role', 'Status', 'Assigned To', 'Email', 'Phone', 'X Handle', 'LinkedIn', 'Follow Up', 'Last Contacted']
+  const rows = contacts.map((c) => [
+    c.name,
+    c.school_name || '',
+    c.role || '',
+    c.status || 'New',
+    c.assigned_to || '',
+    c.email || '',
+    c.phone || '',
+    c.x_handle || '',
+    c.linkedin_url || '',
+    isoDate(c.follow_up_at),
+    isoDate(c.last_contacted_at),
+  ])
+  const csvContent = [headers, ...rows]
+    .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    .join('\n')
+  const blob = new Blob([csvContent], { type: 'text/csv' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `contacts-${new Date().toISOString().slice(0, 10)}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 function todayIsoDate() {
@@ -145,6 +179,10 @@ export default function ContactList() {
 
       if (sortKey === 'follow_up_at') {
         return isoDate(contact.follow_up_at) || null
+      }
+
+      if (sortKey === 'last_contacted_at') {
+        return isoDate(contact.last_contacted_at) || null
       }
 
       return contact[sortKey]
@@ -380,17 +418,27 @@ export default function ContactList() {
       <section className="min-w-0 flex-1 p-6">
         <div className="mb-4 flex items-center justify-between gap-4">
           <h1 className="text-2xl font-semibold text-gray-900">Contacts</h1>
-          <input
-            type="search"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search contacts or schools"
-            className="w-80 rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none"
-          />
+          <div className="flex items-center gap-2">
+            <input
+              type="search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search contacts or schools"
+              className="w-72 rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => exportContactsCSV(sortedContacts)}
+              disabled={sortedContacts.length === 0}
+              className="rounded border border-gray-300 px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Export CSV
+            </button>
+          </div>
         </div>
 
         <div className="mb-4 flex flex-wrap gap-2">
-          {roles.map((role) => (
+          {filterRoles.map((role) => (
             <button
               key={role}
               type="button"
@@ -451,17 +499,18 @@ export default function ContactList() {
                 <th className="border-r border-gray-200 px-3 py-1.5 font-semibold">{renderSortableHeader('Role', 'role')}</th>
                 <th className="border-r border-gray-200 px-3 py-1.5 font-semibold">{renderSortableHeader('Status', 'status')}</th>
                 <th className="border-r border-gray-200 px-3 py-1.5 font-semibold">{renderSortableHeader('Assigned To', 'assigned_to')}</th>
-                <th className="px-3 py-1.5 font-semibold">{renderSortableHeader('Follow Up', 'follow_up_at')}</th>
+                <th className="border-r border-gray-200 px-3 py-1.5 font-semibold">{renderSortableHeader('Follow Up', 'follow_up_at')}</th>
+                <th className="px-3 py-1.5 font-semibold">{renderSortableHeader('Last Contacted', 'last_contacted_at')}</th>
               </tr>
             </thead>
             <tbody className="bg-white">
               {loading ? (
                 <tr className="h-9 border-b border-gray-200">
-                  <td colSpan="7" className="px-3 py-1.5 text-center text-[13px] text-gray-500">Loading contacts...</td>
+                  <td colSpan="8" className="px-3 py-1.5 text-center text-[13px] text-gray-500">Loading contacts...</td>
                 </tr>
               ) : sortedContacts.length === 0 ? (
                 <tr className="h-9 border-b border-gray-200">
-                  <td colSpan="7" className="px-3 py-1.5 text-center text-[13px] text-gray-500">No contacts found.</td>
+                  <td colSpan="8" className="px-3 py-1.5 text-center text-[13px] text-gray-500">No contacts found.</td>
                 </tr>
               ) : (
                 sortedContacts.map((contact) => {
@@ -529,7 +578,8 @@ export default function ContactList() {
                           ))}
                         </select>
                       </td>
-                      <td className={`px-3 py-1.5 text-[13px] font-medium ${followUpColorClasses(isoDate(contact.follow_up_at), today)}`}>{isoDate(contact.follow_up_at) || '—'}</td>
+                      <td className={`border-r border-gray-200 px-3 py-1.5 text-[13px] font-medium ${followUpColorClasses(isoDate(contact.follow_up_at), today)}`}>{isoDate(contact.follow_up_at) || '—'}</td>
+                      <td className="px-3 py-1.5 text-[13px] text-gray-500">{contact.last_contacted_at ? formatDate(contact.last_contacted_at) : '—'}</td>
                     </tr>
                   )
                 })

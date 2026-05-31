@@ -55,6 +55,13 @@ function compareFollowUps(left, right) {
   return String(left.name || '').localeCompare(String(right.name || ''))
 }
 
+function applyTemplateVariables(body, contact) {
+  return body
+    .replaceAll('{contact_name}', contact.name || '')
+    .replaceAll('{school_name}', contact.school_name || '')
+    .replaceAll('{role}', contact.role || '')
+}
+
 export default function DMQueue() {
   const [contacts, setContacts] = useState([])
   const [dmedTodayIds, setDmedTodayIds] = useState(() => new Set())
@@ -64,6 +71,8 @@ export default function DMQueue() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [updatingIds, setUpdatingIds] = useState(() => new Set())
+  const [dmTemplates, setDmTemplates] = useState([])
+  const [copiedId, setCopiedId] = useState(null)
 
   useEffect(() => {
     let active = true
@@ -73,13 +82,17 @@ export default function DMQueue() {
       setError('')
 
       try {
-        const [contactsResponse, todayResponse] = await Promise.all([fetch('/api/contacts'), fetch('/api/activities/today')])
+        const [contactsResponse, todayResponse, templatesResponse] = await Promise.all([
+          fetch('/api/contacts'),
+          fetch('/api/activities/today'),
+          fetch('/api/templates'),
+        ])
 
         if (!contactsResponse.ok || !todayResponse.ok) {
           throw new Error('Unable to load DM queue')
         }
 
-        const [contactsData, todayData] = await Promise.all([contactsResponse.json(), todayResponse.json()])
+        const [contactsData, todayData, templatesData] = await Promise.all([contactsResponse.json(), todayResponse.json(), templatesResponse.ok ? templatesResponse.json() : Promise.resolve([])])
 
         if (!active) {
           return
@@ -88,6 +101,7 @@ export default function DMQueue() {
         setContacts(contactsData.filter((contact) => contact.assigned_to === 'DMs' && (contact.status || 'New') !== 'Closed'))
         setDmedTodayIds(new Set((todayData.contact_ids_dmed_today || []).map(String)))
         setDmCount(Number(todayData.dm_count || 0))
+        setDmTemplates(templatesData.filter((t) => t.type === 'dm'))
       } catch (loadError) {
         if (active) {
           setError(loadError.message || 'Unable to load DM queue')
@@ -144,6 +158,15 @@ export default function DMQueue() {
   const goalProgress = Math.min(100, (dmCount / DAILY_DM_GOAL) * 100)
   const progressColor = dmCount >= DAILY_DM_GOAL ? 'bg-green-500' : dmCount >= 25 ? 'bg-amber-500' : 'bg-gray-400'
   const today = todayIsoDate()
+
+  async function copyTemplate(contact) {
+    const template = dmTemplates[0]
+    if (!template) return
+    const text = applyTemplateVariables(template.body, contact)
+    await navigator.clipboard.writeText(text)
+    setCopiedId(String(contact.id))
+    setTimeout(() => setCopiedId(null), 1500)
+  }
 
   async function markAsDmed(contactId) {
     const normalizedId = String(contactId)
@@ -299,6 +322,15 @@ export default function DMQueue() {
                       <div className="flex flex-wrap items-center gap-3 md:justify-end">
                         {sentToday ? <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700">Sent today</span> : null}
                         {isOverdue ? <span className="text-sm font-semibold text-red-600">Due {formatDate(followUpDate)}</span> : null}
+                        {dmTemplates.length > 0 ? (
+                          <button
+                            type="button"
+                            onClick={() => copyTemplate(contact)}
+                            className="rounded border border-sky-300 px-3 py-1 text-sm font-medium text-sky-700 transition-colors hover:bg-sky-50"
+                          >
+                            {copiedId === contactId ? 'Copied!' : 'Copy DM'}
+                          </button>
+                        ) : null}
                       </div>
                     </div>
                   </article>

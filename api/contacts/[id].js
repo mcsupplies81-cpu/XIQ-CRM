@@ -52,8 +52,9 @@ export default async function handler(req, res) {
     const hasPhone = has('phone')
     const hasRole = has('role')
     const hasXHandle = has('x_handle')
+    const hasLinkedinUrl = has('linkedin_url')
 
-    if (!hasStatus && !hasAssignedTo && !hasNotes && !hasFollowUpAt && !hasName && !hasEmail && !hasPhone && !hasRole && !hasXHandle) {
+    if (!hasStatus && !hasAssignedTo && !hasNotes && !hasFollowUpAt && !hasName && !hasEmail && !hasPhone && !hasRole && !hasXHandle && !hasLinkedinUrl) {
       return res.status(400).json({ error: 'No fields provided' })
     }
 
@@ -68,7 +69,8 @@ export default async function handler(req, res) {
         email        = CASE WHEN ${hasEmail}        THEN ${hasEmail       ? body.email || null : null} ELSE email        END,
         phone        = CASE WHEN ${hasPhone}        THEN ${hasPhone       ? body.phone || null : null} ELSE phone        END,
         role         = CASE WHEN ${hasRole}         THEN ${hasRole        ? body.role  || null : null} ELSE role         END,
-        x_handle     = CASE WHEN ${hasXHandle}      THEN ${hasXHandle     ? body.x_handle || null : null} ELSE x_handle     END
+        x_handle     = CASE WHEN ${hasXHandle}      THEN ${hasXHandle     ? body.x_handle || null : null} ELSE x_handle     END,
+        linkedin_url = CASE WHEN ${hasLinkedinUrl}  THEN ${hasLinkedinUrl ? body.linkedin_url || null : null} ELSE linkedin_url END
       WHERE id = ${id}
       RETURNING *
     `

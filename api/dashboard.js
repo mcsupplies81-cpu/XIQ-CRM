@@ -77,6 +77,17 @@ export default async function handler(req, res) {
     WHERE created_at >= CURRENT_DATE
   `
 
+  const pipelineByStageRows = await sql`
+    SELECT
+      stage,
+      count(*)::int as deal_count,
+      coalesce(sum(value), 0)::numeric as total_value
+    FROM deals
+    WHERE stage NOT IN ('Closed Won', 'Closed Lost')
+    GROUP BY stage
+    ORDER BY stage
+  `
+
   const contactsByStatus = contactStatuses.reduce((summary, status) => ({ ...summary, [status]: 0 }), {})
 
   contactsByStatusRows.forEach((row) => {
@@ -96,5 +107,10 @@ export default async function handler(req, res) {
       dms_today: Number(activityTodayRows[0]?.dms_today) || 0,
       emails_today: Number(activityTodayRows[0]?.emails_today) || 0,
     },
+    pipeline_by_stage: pipelineByStageRows.map((row) => ({
+      stage: row.stage,
+      deal_count: Number(row.deal_count) || 0,
+      total_value: Number(row.total_value) || 0,
+    })),
   })
 }

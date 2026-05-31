@@ -1,4 +1,4 @@
-import { getUserId } from './_auth.js'
+import { getUserId, getUserDisplayName } from './_auth.js'
 import { sql } from './db.js'
 
 async function readBody(req) {
@@ -50,9 +50,11 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'contact_id and type are required' })
     }
 
+    const createdBy = await getUserDisplayName(userId)
+
     const insertedRows = await sql`
-      INSERT INTO activities (contact_id, type, notes)
-      VALUES (${contact_id}, ${type}, ${notes})
+      INSERT INTO activities (contact_id, type, notes, created_by)
+      VALUES (${contact_id}, ${type}, ${notes}, ${createdBy})
       RETURNING *
     `
 

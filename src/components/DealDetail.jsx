@@ -31,8 +31,10 @@ export default function DealDetail({ deal, onClose, onDealUpdated, onDealDeleted
   const [value, setValue] = useState(deal.value ?? '')
   const [closeDate, setCloseDate] = useState(dateInputValue(deal.close_date))
   const [notes, setNotes] = useState(deal.notes || '')
+  const [nextAction, setNextAction] = useState(deal.next_action || '')
   const [originalValue, setOriginalValue] = useState(deal.value ?? '')
   const [originalNotes, setOriginalNotes] = useState(deal.notes || '')
+  const [originalNextAction, setOriginalNextAction] = useState(deal.next_action || '')
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -40,8 +42,10 @@ export default function DealDetail({ deal, onClose, onDealUpdated, onDealDeleted
     setValue(deal.value ?? '')
     setCloseDate(dateInputValue(deal.close_date))
     setNotes(deal.notes || '')
+    setNextAction(deal.next_action || '')
     setOriginalValue(deal.value ?? '')
     setOriginalNotes(deal.notes || '')
+    setOriginalNextAction(deal.next_action || '')
   }, [deal])
 
   async function patchDeal(payload) {
@@ -119,6 +123,21 @@ export default function DealDetail({ deal, onClose, onDealUpdated, onDealDeleted
     }
   }
 
+  async function handleNextActionBlur() {
+    if (nextAction === originalNextAction) {
+      return
+    }
+
+    const previousNextAction = originalNextAction
+
+    try {
+      await patchDeal({ next_action: nextAction || null })
+      setOriginalNextAction(nextAction)
+    } catch {
+      setNextAction(previousNextAction)
+    }
+  }
+
   async function handleDelete() {
     const response = await fetch(`/api/deals/${deal.id}`, { method: 'DELETE' })
 
@@ -174,6 +193,18 @@ export default function DealDetail({ deal, onClose, onDealUpdated, onDealDeleted
             type="date"
             value={closeDate}
             onChange={handleCloseDateChange}
+            className="w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none"
+          />
+        </label>
+
+        <label className="block">
+          <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">Next Action</span>
+          <input
+            type="text"
+            value={nextAction}
+            onChange={(event) => setNextAction(event.target.value)}
+            onBlur={handleNextActionBlur}
+            placeholder="e.g. Send proposal, Follow up call..."
             className="w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none"
           />
         </label>

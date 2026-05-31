@@ -14,6 +14,7 @@ export default async function handler(req, res) {
   }
 
   const contacts = await sql`
+    -- contacts.* includes follow_up_at after the add_follow_up migration is applied.
     SELECT contacts.*, schools.name as school_name, schools.city, schools.state
     FROM contacts
     LEFT JOIN schools ON contacts.school_id = schools.id

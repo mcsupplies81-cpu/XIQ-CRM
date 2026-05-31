@@ -15,6 +15,31 @@ export const statusBadgeClasses = {
 
 const activePill = 'rounded border border-gray-900 bg-gray-900 px-2.5 py-1 text-xs font-medium text-white transition-colors'
 const inactivePill = 'rounded border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50'
+const dueTodayActivePill = 'rounded border border-rose-600 bg-rose-600 px-2.5 py-1 text-xs font-medium text-white transition-colors'
+
+function isoDate(value) {
+  return value ? String(value).slice(0, 10) : ''
+}
+
+function todayIsoDate() {
+  return new Date().toISOString().slice(0, 10)
+}
+
+function followUpColorClasses(followUpAt, today) {
+  if (!followUpAt) {
+    return 'text-gray-400'
+  }
+
+  if (followUpAt < today) {
+    return 'text-red-600'
+  }
+
+  if (followUpAt === today) {
+    return 'text-amber-600'
+  }
+
+  return 'text-gray-500'
+}
 
 function addSchool(contact) {
   return {
@@ -39,6 +64,7 @@ export default function ContactList() {
   const [selectedRoles, setSelectedRoles] = useState([])
   const [selectedAssignees, setSelectedAssignees] = useState([])
   const [selectedStatuses, setSelectedStatuses] = useState([])
+  const [showDueToday, setShowDueToday] = useState(false)
   const [loading, setLoading] = useState(true)
   const [bulkStatus, setBulkStatus] = useState(statuses[0])
   const [bulkUpdating, setBulkUpdating] = useState(false)
@@ -67,6 +93,8 @@ export default function ContactList() {
   const filteredContacts = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
 
+    const today = todayIsoDate()
+
     return contacts.filter((contact) => {
       const matchesSearch =
         !normalizedSearch ||
@@ -76,10 +104,12 @@ export default function ContactList() {
       const matchesAssignee = selectedAssignees.length === 0 || selectedAssignees.includes(contact.assigned_to)
       const contactStatus = contact.status || 'New'
       const matchesStatus = selectedStatuses.length === 0 || selectedStatuses.includes(contactStatus)
+      const followUpAt = isoDate(contact.follow_up_at)
+      const matchesDueToday = !showDueToday || (followUpAt && followUpAt <= today)
 
-      return matchesSearch && matchesRole && matchesAssignee && matchesStatus
+      return matchesSearch && matchesRole && matchesAssignee && matchesStatus && matchesDueToday
     })
-  }, [contacts, search, selectedRoles, selectedAssignees, selectedStatuses])
+  }, [contacts, search, selectedRoles, selectedAssignees, selectedStatuses, showDueToday])
 
   const allVisibleSelected = filteredContacts.length > 0 && filteredContacts.every((contact) => selectedIds.has(String(contact.id)))
 
@@ -153,6 +183,8 @@ export default function ContactList() {
     }
   }
 
+  const today = todayIsoDate()
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       <section className="min-w-0 flex-1 p-6">
@@ -200,6 +232,14 @@ export default function ContactList() {
               {status}
             </button>
           ))}
+          <span className="mx-1 h-6 border-l border-gray-200" />
+          <button
+            type="button"
+            onClick={() => setShowDueToday((current) => !current)}
+            className={showDueToday ? dueTodayActivePill : inactivePill}
+          >
+            Due today
+          </button>
         </div>
 
         <div className="overflow-hidden rounded-md border border-gray-200 bg-white">
@@ -221,16 +261,17 @@ export default function ContactList() {
                 <th className="px-3 py-2 font-medium">Role</th>
                 <th className="px-3 py-2 font-medium">Status</th>
                 <th className="px-3 py-2 font-medium">Assigned To</th>
+                <th className="px-3 py-2 font-medium">Follow Up</th>
               </tr>
             </thead>
             <tbody className="bg-white">
               {loading ? (
                 <tr className="h-10 border-b border-gray-100">
-                  <td colSpan="6" className="px-3 py-2 text-center text-sm text-gray-500">Loading contacts...</td>
+                  <td colSpan="7" className="px-3 py-2 text-center text-sm text-gray-500">Loading contacts...</td>
                 </tr>
               ) : filteredContacts.length === 0 ? (
                 <tr className="h-10 border-b border-gray-100">
-                  <td colSpan="6" className="px-3 py-2 text-center text-sm text-gray-500">No contacts found.</td>
+                  <td colSpan="7" className="px-3 py-2 text-center text-sm text-gray-500">No contacts found.</td>
                 </tr>
               ) : (
                 filteredContacts.map((contact) => (
@@ -253,6 +294,7 @@ export default function ContactList() {
                     <td className="px-3 py-2"><span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">{contact.role || '—'}</span></td>
                     <td className="px-3 py-2"><span className={`rounded px-2 py-0.5 text-xs font-medium ${statusBadgeClasses[contact.status || 'New'] || statusBadgeClasses.New}`}>{contact.status || 'New'}</span></td>
                     <td className="px-3 py-2 text-sm text-gray-500">{contact.assigned_to || 'Unassigned'}</td>
+                    <td className={`px-3 py-2 text-sm font-medium ${followUpColorClasses(isoDate(contact.follow_up_at), today)}`}>{isoDate(contact.follow_up_at) || '—'}</td>
                   </tr>
                 ))
               )}

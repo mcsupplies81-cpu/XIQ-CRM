@@ -32,12 +32,13 @@ export default async function handler(req, res) {
   }
 
   const { id } = req.query
-  const { status, assigned_to, notes } = await readBody(req)
+  const { status, assigned_to, notes, follow_up_at } = await readBody(req)
   const hasStatus = status !== undefined
   const hasAssignedTo = assigned_to !== undefined
   const hasNotes = notes !== undefined
+  const hasFollowUpAt = follow_up_at !== undefined
 
-  if (!hasStatus && !hasAssignedTo && !hasNotes) {
+  if (!hasStatus && !hasAssignedTo && !hasNotes && !hasFollowUpAt) {
     return res.status(400).json({ error: 'No fields provided' })
   }
 
@@ -46,7 +47,8 @@ export default async function handler(req, res) {
     SET
       status = CASE WHEN ${hasStatus} THEN ${hasStatus ? status : null} ELSE status END,
       assigned_to = CASE WHEN ${hasAssignedTo} THEN ${hasAssignedTo ? assigned_to : null} ELSE assigned_to END,
-      notes = CASE WHEN ${hasNotes} THEN ${hasNotes ? notes : null} ELSE notes END
+      notes = CASE WHEN ${hasNotes} THEN ${hasNotes ? notes : null} ELSE notes END,
+      follow_up_at = CASE WHEN ${hasFollowUpAt} THEN ${hasFollowUpAt ? follow_up_at : null} ELSE follow_up_at END
     WHERE id = ${id}
     RETURNING *
   `

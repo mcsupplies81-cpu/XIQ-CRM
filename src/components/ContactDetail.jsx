@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { statusBadgeClasses } from './ContactList.jsx'
 
 const statuses = ['New', 'Emailed', 'Called', 'Responded', 'Closed']
@@ -33,11 +33,18 @@ function activityTypeForPayload(type) {
   return type.toLowerCase()
 }
 
+function dateInputValue(value) {
+  return value ? String(value).slice(0, 10) : ''
+}
+
 export default function ContactDetail({ contact, onClose, onContactUpdated }) {
   const [notes, setNotes] = useState(contact.notes || '')
   const [originalNotes, setOriginalNotes] = useState(contact.notes || '')
   const [status, setStatus] = useState(contact.status || 'New')
   const [assignedTo, setAssignedTo] = useState(contact.assigned_to || '')
+  const [followUpAt, setFollowUpAt] = useState(dateInputValue(contact.follow_up_at))
+  const [showFollowUpSaved, setShowFollowUpSaved] = useState(false)
+  const followUpSavedTimeout = useRef(null)
   const [activities, setActivities] = useState([])
   const [deals, setDeals] = useState([])
   const [isSaving, setIsSaving] = useState(false)
@@ -49,6 +56,11 @@ export default function ContactDetail({ contact, onClose, onContactUpdated }) {
     setOriginalNotes(contact.notes || '')
     setStatus(contact.status || 'New')
     setAssignedTo(contact.assigned_to || '')
+    setFollowUpAt(dateInputValue(contact.follow_up_at))
+    setShowFollowUpSaved(false)
+    if (followUpSavedTimeout.current) {
+      clearTimeout(followUpSavedTimeout.current)
+    }
     setActivities([])
     setDeals([])
 
@@ -70,6 +82,9 @@ export default function ContactDetail({ contact, onClose, onContactUpdated }) {
 
     return () => {
       active = false
+      if (followUpSavedTimeout.current) {
+        clearTimeout(followUpSavedTimeout.current)
+      }
     }
   }, [contact.id])
 
@@ -126,6 +141,27 @@ export default function ContactDetail({ contact, onClose, onContactUpdated }) {
       await patchContact({ assigned_to: nextAssignedTo })
     } catch {
       setAssignedTo(previousAssignedTo)
+    }
+  }
+
+  async function handleFollowUpChange(event) {
+    const nextFollowUpAt = event.target.value
+    const previousFollowUpAt = followUpAt
+    setFollowUpAt(nextFollowUpAt)
+    setShowFollowUpSaved(false)
+    if (followUpSavedTimeout.current) {
+      clearTimeout(followUpSavedTimeout.current)
+    }
+
+    try {
+      await patchContact({ follow_up_at: nextFollowUpAt || null })
+      setShowFollowUpSaved(true)
+      followUpSavedTimeout.current = setTimeout(() => {
+        setShowFollowUpSaved(false)
+        followUpSavedTimeout.current = null
+      }, 2000)
+    } catch {
+      setFollowUpAt(previousFollowUpAt)
     }
   }
 
@@ -234,6 +270,18 @@ export default function ContactDetail({ contact, onClose, onContactUpdated }) {
             rows="5"
             className="w-full rounded border border-gray-200 p-2 text-sm text-gray-900 outline-none"
           />
+        </label>
+        <label className="mt-3 block">
+          <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">Follow up on</span>
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              value={followUpAt}
+              onChange={handleFollowUpChange}
+              className="rounded border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none"
+            />
+            <span className={`text-xs text-emerald-600 transition-opacity duration-300 ${showFollowUpSaved ? 'opacity-100' : 'opacity-0'}`}>Saved</span>
+          </div>
         </label>
       </section>
 

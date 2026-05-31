@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import Avatar from './Avatar.jsx'
 import { statusBadgeClasses } from './ContactList.jsx'
 
 const DAILY_DM_GOAL = 50
@@ -277,6 +278,7 @@ export default function DMQueue() {
                           aria-label={`Mark ${contact.name} as DMed`}
                           className="mt-1 h-5 w-5 rounded border-gray-300 text-sky-600 disabled:cursor-not-allowed disabled:opacity-70"
                         />
+                        <Avatar name={contact.name} />
                         <div className="min-w-0">
                           <div className="mb-1 flex flex-wrap items-center gap-2">
                             <h2 className="font-semibold text-gray-900">{contact.name}</h2>

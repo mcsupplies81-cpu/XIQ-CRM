@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { DndContext, useDroppable } from '@dnd-kit/core'
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import Avatar from './Avatar.jsx'
 
 const dealStages = ['Prospecting', 'Qualified', 'Proposal', 'Negotiation', 'Closed Won', 'Closed Lost']
 
@@ -82,8 +83,13 @@ function DealCard({ deal }) {
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="mb-2 cursor-grab rounded border border-gray-200 bg-white p-3 shadow-sm transition-colors hover:border-gray-300">
-      <div className="text-sm font-medium text-gray-900">{deal.title}</div>
-      <div className="mt-1 text-xs text-gray-500">{deal.school_name || '—'}</div>
+      <div className="flex items-start gap-2.5">
+        <Avatar name={deal.school_name || deal.title} />
+        <div className="min-w-0">
+          <div className="truncate text-sm font-medium text-gray-900">{deal.title}</div>
+          <div className="mt-1 truncate text-xs text-gray-500">{deal.school_name || '—'}</div>
+        </div>
+      </div>
       <div className="mt-3 flex items-center justify-between gap-3">
         <span className="text-sm font-semibold text-gray-900">{formatCurrency(deal.value)}</span>
         <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">{dealProbability(deal)}%</span>

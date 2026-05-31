@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import Avatar from './Avatar.jsx'
 import ContactDetail from './ContactDetail.jsx'
 
 const roles = ['HC', 'AD', 'OC']
@@ -456,7 +457,12 @@ export default function ContactList() {
                           className="h-4 w-4 rounded border-gray-300 text-blue-600"
                         />
                       </td>
-                      <td className="border-r border-gray-200 px-3 py-1.5 text-[13px] font-medium text-gray-900">{contact.name}</td>
+                      <td className="border-r border-gray-200 px-3 py-1.5 text-[13px]">
+                        <div className="flex items-center gap-2.5">
+                          <Avatar name={contact.name} />
+                          <span className="truncate font-medium text-gray-900">{contact.name}</span>
+                        </div>
+                      </td>
                       <td className="border-r border-gray-200 px-3 py-1.5 text-[13px] text-gray-500">{contact.school_name || '—'}</td>
                       <td className="border-r border-gray-200 px-3 py-1.5"><span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">{contact.role || '—'}</span></td>
                       <td className="border-r border-gray-200 px-3 py-1.5">

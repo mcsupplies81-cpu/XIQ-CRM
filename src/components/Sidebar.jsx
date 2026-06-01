@@ -15,6 +15,7 @@ const navSections = [
     items: [
       { to: '/calls', label: 'Call Queue', indicator: 'bg-green-400' },
       { to: '/dms', label: 'DM Queue', indicator: 'bg-sky-400' },
+      { to: '/playbook', label: 'Playbook', indicator: 'bg-lime-400' },
     ],
   },
   {

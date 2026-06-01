@@ -1,0 +1,574 @@
+{
+  "meta": {
+    "product": "XIQ",
+    "version": "2.1",
+    "target_market": "High School Football Programs",
+    "sdr_profile": "High football IQ — played or coached",
+    "primary_cta": "Book 15-minute walkthrough",
+    "social_proof": ["Alabama", "Baylor", "Hawaii", "Nevada", "Sac State", "FCS programs", "High school programs nationwide"],
+    "selling_season": "Year-round — summer is primary window (install, camp prep)",
+    "positioning": {
+      "one_liner": "XIQ helps football staffs replace the scattered mix of Excel, Google Sheets, PDFs, Hudl notes, and manually updated wristbands with one organized system for game-week prep.",
+      "vs_hudl": "Hudl is film. XIQ is the offensive planning layer around the film.",
+      "not": "XIQ is not a Hudl replacement.",
+      "is": "Play inventory, practice scripts, call sheets, wristbands, self-scout — one place."
+    }
+  },
+
+  "personas": {
+
+    "head_coach": {
+      "id": "head_coach",
+      "label": "Head Football Coach",
+      "primary_goal": "Book 15-minute walkthrough with HC or get referred to OC/QB coach who owns call sheet, script, and wristband workflow",
+      "pain_points": [
+        "Saving time during game week",
+        "Building call sheets faster",
+        "Keeping wristbands updated without manual rework",
+        "Scripting practice cleanly",
+        "Organizing play inventory",
+        "Self-scouting by down, distance, personnel, formation, concept",
+        "Getting offensive staff aligned",
+        "Reducing manual Sunday/Monday prep",
+        "One source of truth"
+      ],
+      "script": {
+        "opener": {
+          "id": "coach_opener",
+          "label": "Opener — Pattern Interrupt",
+          "script": "Coach [Last Name], this is [Your Name] with XIQ — I'll be honest with you, I'm cold calling.\n\nWe work with programs at Alabama, Baylor, Hawaii — and a lot of high school staffs — on one specific problem: game-week prep is still scattered across Excel, PDFs, and manual wristbands even when you have Hudl.\n\nReal quick — who owns your call sheet and wristband workflow, you or your OC?",
+          "note": "Pattern interrupt disarms the guard. College names land before they can hang up. One question closes the opener — no pitch yet.",
+          "branches": [
+            { "trigger": "That's me / I handle it", "next": "coach_owns_workflow" },
+            { "trigger": "My OC handles that", "next": "coach_refers_to_oc" },
+            { "trigger": "What is XIQ?", "next": "coach_what_is_xiq" },
+            { "trigger": "Not interested / too busy", "next": "objection_not_interested" }
+          ]
+        },
+
+        "nodes": {
+
+          "coach_owns_workflow": {
+            "id": "coach_owns_workflow",
+            "label": "Coach owns the workflow",
+            "script": "Perfect.\n\nThe reason I'm calling now — summer — is that this is actually the best window to look at it. Once game week starts, nobody has time. But right now, before camp, while you're still building your install, is when staffs can actually evaluate something and get the workflow set up before it matters.\n\nMost staffs have Hudl for film, but the rest of game-week prep is still manual. Call sheet in one place, wristband in Excel, practice script separate, self-scout takes extra time or doesn't get done consistently.\n\nHow are you guys building your call sheet and wristbands right now?",
+            "note": "Stop and listen. Their answer tells you everything.",
+            "branches": [
+              { "trigger": "Excel / Google Sheets", "next": "coach_uses_excel" },
+              { "trigger": "We use Hudl", "next": "objection_we_use_hudl" },
+              { "trigger": "We have a system", "next": "objection_have_system" },
+              { "trigger": "Send me info", "next": "objection_send_info" },
+              { "trigger": "No budget", "next": "objection_no_budget" },
+              { "trigger": "We're busy", "next": "objection_busy" }
+            ]
+          },
+
+          "coach_refers_to_oc": {
+            "id": "coach_refers_to_oc",
+            "label": "Coach refers to OC",
+            "script": "Got it — that makes sense.\n\nIs Coach [OC Last Name] the right person for call sheet, script, and wristband workflow? I'm not trying to go around you — just want to make sure I'm talking to whoever actually owns game-week prep.\n\n[If yes]: Perfect. What's the best way to reach him? And would it be okay if I mention I spoke with you briefly?",
+            "branches": [
+              { "trigger": "Yes, here's his contact", "next": "referral_captured" },
+              { "trigger": "Actually I handle it too", "next": "coach_owns_workflow" }
+            ]
+          },
+
+          "coach_what_is_xiq": {
+            "id": "coach_what_is_xiq",
+            "label": "Coach asks what XIQ is",
+            "script": "Sure — short version:\n\nXIQ is a football operations platform. It gives the staff one place to manage play inventory, build the weekly practice script, organize the call sheet, print wristbands, and run self-scout.\n\nStaffs at Alabama, Baylor, Hawaii are using it. The high school version is the same workflow — just built for what a HS staff actually has time to manage.\n\nThe easiest way to understand it is to see it. Would a 15-minute walkthrough this week make sense?",
+            "branches": [
+              { "trigger": "Sure, let's do it", "next": "book_demo" },
+              { "trigger": "Send me info first", "next": "objection_send_info" },
+              { "trigger": "Not interested", "next": "objection_not_interested" }
+            ]
+          },
+
+          "coach_uses_excel": {
+            "id": "coach_uses_excel",
+            "label": "Coach uses Excel / Google Sheets",
+            "script": "Got it — that's the most common workflow we see. Excel works, but it gets painful when the call sheet changes and now the wristband, practice script, and self-scout all need to stay aligned manually.\n\nXIQ connects those pieces — play inventory, script, call sheet, wristband, self-scout — so the staff isn't updating four different files every time something changes.\n\nI don't want to overpitch it on the phone. It's way easier to see live.\n\nWould it be worth 15 minutes this week to show you what that workflow looks like?",
+            "branches": [
+              { "trigger": "Sure", "next": "book_demo" },
+              { "trigger": "Send me info", "next": "objection_send_info" },
+              { "trigger": "No budget", "next": "objection_no_budget" },
+              { "trigger": "Not interested", "next": "objection_not_interested" }
+            ]
+          },
+
+          "book_demo": {
+            "id": "book_demo",
+            "label": "Book the demo",
+            "script": "Good — I'll keep it tight, 15 minutes.\n\nThe walkthrough covers play inventory, script builder, call sheet, wristband printout, and self-scout.\n\nShould we include your OC or QB coach too, or would you rather see it first?\n\n[Confirm date/time and attendees]",
+            "disposition": "demo_booked",
+            "required_fields": ["date_time", "attendees", "roles", "current_workflow", "main_pain"]
+          },
+
+          "referral_captured": {
+            "id": "referral_captured",
+            "label": "Referral captured",
+            "disposition": "referral",
+            "required_fields": ["referred_name", "referred_role", "referred_contact", "permission_to_mention"]
+          }
+        }
+      }
+    },
+
+    "athletic_director": {
+      "id": "athletic_director",
+      "label": "Athletic Director",
+      "primary_goal": "Get AD to refer to head coach, book a joint demo, or clarify budget/approval path",
+      "pain_points": [
+        "Program organization and professionalism",
+        "Giving coaches better tools without adding staff",
+        "Staff continuity",
+        "Supporting the head coach",
+        "Budget fit — smaller spend vs helmets, travel, facilities",
+        "Competitive advantage without a major spend",
+        "Clear approval path"
+      ],
+      "script": {
+        "opener": {
+          "id": "ad_opener",
+          "label": "Opener — Program outcomes first",
+          "script": "[AD Last Name], this is [Your Name] with XIQ — I'll be quick.\n\nWe work with football programs at Alabama, Baylor, Hawaii, and a lot of high school programs on one thing: giving the coaching staff a cleaner system for game-week prep — call sheets, scripts, wristbands, play inventory, self-scout — all in one place instead of scattered across Excel and PDFs.\n\nBefore I go straight to the football coach, I wanted to ask: when the football program evaluates a tool like this, does it come through you on the budget side, or does the head coach handle it independently?",
+          "note": "Lead with college social proof before routing. The budget question makes the AD feel like a decision-maker, not a receptionist.",
+          "branches": [
+            { "trigger": "Yes, I'm involved on budget", "next": "ad_involved" },
+            { "trigger": "Talk to the coach", "next": "ad_routes_to_coach" },
+            { "trigger": "What does it do?", "next": "ad_what_does_it_do" },
+            { "trigger": "We already have Hudl", "next": "ad_objection_hudl" },
+            { "trigger": "No budget", "next": "ad_objection_no_budget" },
+            { "trigger": "Send me info", "next": "ad_objection_send_info" },
+            { "trigger": "I don't handle that", "next": "ad_objection_not_my_area" }
+          ]
+        },
+
+        "nodes": {
+
+          "ad_involved": {
+            "id": "ad_involved",
+            "label": "AD is involved in budget/approval",
+            "script": "That makes sense — usually it's a head coach and AD conversation.\n\nThe coach evaluates whether it actually helps the staff. You help with approval or budget if there's a fit.\n\nTo be clear: this is not a Hudl replacement. Hudl is film. XIQ is the planning workflow around the film — scripts, call sheets, wristbands, play inventory, self-scout.\n\nWould it make more sense to do a short walkthrough with you and Coach [Last Name] together, or should I show him first and bring you in if there's interest?",
+            "branches": [
+              { "trigger": "Do it together", "next": "ad_book_joint_demo" },
+              { "trigger": "Show coach first", "next": "ad_routes_to_coach" }
+            ]
+          },
+
+          "ad_routes_to_coach": {
+            "id": "ad_routes_to_coach",
+            "label": "AD routes to coach",
+            "script": "Absolutely — that's usually the right next step.\n\nIs Coach [Last Name] the best person, or should I start with the offensive coordinator?\n\nWould it be okay if I mention I spoke with you briefly?\n\n[If yes]: Perfect — what's the best email or number for him?",
+            "disposition": "referral",
+            "required_fields": ["referred_name", "referred_role", "referred_contact", "permission_to_mention"]
+          },
+
+          "ad_what_does_it_do": {
+            "id": "ad_what_does_it_do",
+            "label": "AD asks what XIQ does",
+            "script": "XIQ is a football operations platform for the coaching staff.\n\nIt helps them keep play inventory, weekly practice script, call sheet, wristband, and self-scout organized in one system.\n\nStaffs at Alabama, Baylor, Hawaii use it. Most football staffs have film handled through Hudl — but the rest of game-week prep still lives in Excel, PDFs, and manual wristband templates. XIQ cleans that up and gives the staff one source of truth.\n\nThe best person to evaluate the football side would be Coach [Last Name]. Should I start with him, or would you want to be on the walkthrough too?",
+            "branches": [
+              { "trigger": "Start with coach", "next": "ad_routes_to_coach" },
+              { "trigger": "Include me", "next": "ad_book_joint_demo" }
+            ]
+          },
+
+          "ad_objection_hudl": {
+            "id": "ad_objection_hudl",
+            "label": "AD says they already have Hudl",
+            "script": "Totally — most schools do. We're not replacing Hudl.\n\nHudl is film. XIQ supports the workflow around the film — call sheets, scripts, wristbands, play inventory, and self-scout.\n\nMost football staffs still manage that part manually even if they use Hudl every day.\n\nWould Coach [Last Name] be the right person to evaluate that workflow?",
+            "branches": [
+              { "trigger": "Yes, talk to coach", "next": "ad_routes_to_coach" },
+              { "trigger": "I want to see it too", "next": "ad_book_joint_demo" }
+            ]
+          },
+
+          "ad_objection_no_budget": {
+            "id": "ad_objection_no_budget",
+            "label": "AD says no budget",
+            "script": "Understood — I know athletic departments have to be careful.\n\nCompared to helmets, travel, uniforms, or facilities, this is a much smaller spend. And the real question is whether Coach [Last Name] thinks it saves the staff enough time to be worth it.\n\nThe first step is just seeing whether he thinks it helps. Should I show him first and only bring you back in if there's interest?",
+            "branches": [
+              { "trigger": "Sure, show coach first", "next": "ad_routes_to_coach" },
+              { "trigger": "Actually tell me more", "next": "ad_what_does_it_do" }
+            ]
+          },
+
+          "ad_objection_send_info": {
+            "id": "ad_objection_send_info",
+            "label": "AD says send info",
+            "script": "Absolutely — I'll send a short overview.\n\nShould I frame it more as a football staff efficiency tool, a game-planning tool, or a program organization tool?\n\n[Let AD answer]\n\nGot it. And should I include Coach [Last Name] on that email?\n\n[Then use the trial close]: Honestly this is one of those tools that's way faster to understand live than on a PDF. What if I send the overview and we put a 15-minute hold on the calendar — if it's not relevant after you read it, cancel it, no hard feelings. But if it looks interesting, we're already on the calendar. Does [specific day] work?",
+            "branches": [
+              { "trigger": "Sure, book it", "next": "ad_book_joint_demo" },
+              { "trigger": "Just send the info for now", "next": "disposition_send_info" }
+            ]
+          },
+
+          "ad_objection_not_my_area": {
+            "id": "ad_objection_not_my_area",
+            "label": "AD says not my area",
+            "script": "No problem — who usually handles software or football program tools? The head coach, booster club, district, or someone else?\n\n[Let them answer]\n\nGot it — would Coach [Last Name] be the best place to start?",
+            "branches": [
+              { "trigger": "Yes, coach handles it", "next": "ad_routes_to_coach" },
+              { "trigger": "Booster club", "next": "disposition_not_now" },
+              { "trigger": "District", "next": "disposition_not_now" }
+            ]
+          },
+
+          "ad_book_joint_demo": {
+            "id": "ad_book_joint_demo",
+            "label": "Book joint AD + Coach demo",
+            "script": "Great — the walkthrough is short. We'd show how the football staff manages play inventory, builds practice scripts, organizes call sheets, prints wristbands, and reviews self-scout from one place.\n\nWould you prefer to loop in Coach [Last Name] on the same call, or should I get him on separately first?",
+            "disposition": "demo_booked",
+            "required_fields": ["date_time", "attendees", "roles", "budget_path"]
+          }
+        }
+      }
+    }
+  },
+
+  "objections": {
+    "objection_not_interested": {
+      "id": "objection_not_interested",
+      "label": "Not interested",
+      "script": "No problem. Just so I don't keep bothering you — is that because your staff already has the call sheet, script, wristband, and self-scout workflow solved, or is it just bad timing?",
+      "branches": [
+        { "trigger": "Already solved", "next": "objection_ni_solved" },
+        { "trigger": "Bad timing", "next": "objection_ni_timing" }
+      ]
+    },
+    "objection_ni_solved": {
+      "id": "objection_ni_solved",
+      "label": "They say it's already solved",
+      "script": "Respect that — what are you using today?\n\n[Listen and log the tool/system for CRM]",
+      "disposition": "not_a_fit",
+      "required_fields": ["existing_system", "suppress_future_outreach"]
+    },
+    "objection_ni_timing": {
+      "id": "objection_ni_timing",
+      "label": "Bad timing",
+      "script": "Makes sense. When do you usually look at tools like this — spring, summer, before camp, or after the season?\n\n[Log timing and set follow-up date]",
+      "disposition": "not_now",
+      "required_fields": ["better_timing", "follow_up_date"]
+    },
+    "objection_we_use_hudl": {
+      "id": "objection_we_use_hudl",
+      "label": "We use Hudl",
+      "script": "Totally — almost everyone does. We're not replacing Hudl.\n\nHudl is film. XIQ is the planning layer around it — play inventory, call sheet, script, wristband, self-scout.\n\nAre you still using Excel or Google Sheets for the call sheet and wristband side?",
+      "branches": [
+        { "trigger": "Yes, Excel/Sheets", "next": "coach_uses_excel" },
+        { "trigger": "We have a different system", "next": "objection_have_system" }
+      ]
+    },
+    "objection_have_system": {
+      "id": "objection_have_system",
+      "label": "We already have a system",
+      "script": "That makes sense — most serious staffs do.\n\nIs it a dedicated football planning system, or more of a combination of spreadsheets, Hudl notes, PDFs, and staff habits?\n\n[Let them answer]\n\nGot it. The reason XIQ exists is to connect those pieces — play inventory, script, call sheet, wristband, self-scout — so the staff isn't manually keeping everything aligned.\n\nWorth taking a quick look to compare it against what you're doing now?",
+      "branches": [
+        { "trigger": "Sure", "next": "book_demo" },
+        { "trigger": "No thanks", "next": "objection_not_interested" }
+      ]
+    },
+    "objection_send_info": {
+      "id": "objection_send_info",
+      "label": "Send me info",
+      "script": "Absolutely. So I don't send you generic software stuff — what would be most relevant to your staff: call sheet, practice scripting, wristbands, or self-scout?\n\n[Let them answer. Then:]\n\nI'll send that over today. And honestly — this is one of those tools that's way faster to understand live than on a PDF.\n\nWhat if we do this: I'll send the overview now, and we put a 15-minute hold on the calendar for [day]. If you look at the email and it's clearly not relevant, cancel it — no hard feelings. But if it looks interesting, we're already on the calendar.\n\nDoes [specific day] work for a quick hold?",
+      "branches": [
+        { "trigger": "Sure, book a hold", "next": "book_demo" },
+        { "trigger": "Just send for now", "next": "disposition_send_info" }
+      ]
+    },
+    "objection_no_budget": {
+      "id": "objection_no_budget",
+      "label": "No budget",
+      "script": "I hear you — most high school staffs are careful with budget.\n\nThe first step is just seeing whether it saves the staff enough time to matter. If it does, then we can talk through whether it fits under football budget, booster support, or athletic department budget.\n\nWould it be worth looking at it first before we decide it's a budget issue?",
+      "branches": [
+        { "trigger": "Sure", "next": "book_demo" },
+        { "trigger": "No, not now", "next": "objection_not_interested" }
+      ]
+    },
+    "objection_busy": {
+      "id": "objection_busy",
+      "label": "We're busy",
+      "script": "Completely understand. Let me ask one direct question: is your call sheet, wristband, practice script, and self-scout workflow already buttoned up — or is some of that still manual?",
+      "branches": [
+        { "trigger": "Still manual", "next": "coach_owns_workflow" },
+        { "trigger": "It's handled", "next": "objection_ni_solved" }
+      ]
+    },
+    "objection_call_after_season": {
+      "id": "objection_call_after_season",
+      "label": "Call me after the season",
+      "script": "I hear that a lot. The problem is by August you'll be in camp, and by September you're in-season.\n\nThe staffs that get the most out of XIQ set it up in the summer — before the call sheet is due Week 1.\n\nCan we at least do a 15-minute look now so you can decide after you've actually seen it?",
+      "branches": [
+        { "trigger": "Ok, let's look", "next": "book_demo" },
+        { "trigger": "Still no", "next": "disposition_not_now" }
+      ]
+    }
+  },
+
+  "wrong_person_handling": {
+    "not_the_coach": {
+      "id": "wrong_person_not_coach",
+      "label": "Reached wrong person — not the football coach",
+      "script": "No worries — I'm actually trying to reach Coach [Last Name], the head football coach. Is he someone you could point me to, or do you know the best way to reach him?",
+      "branches": [
+        { "trigger": "Here's his number / email", "next": "referral_captured" },
+        { "trigger": "He's not available", "next": "gatekeeper_timing" },
+        { "trigger": "Email him", "next": "gatekeeper_email" }
+      ]
+    },
+    "coach_not_football": {
+      "id": "wrong_person_not_football",
+      "label": "Reached a coach but not football",
+      "script": "My apologies — I was actually trying to reach the head football coach. Do you know who that is or the best way to get in touch with him?",
+      "branches": [
+        { "trigger": "Here's his info", "next": "referral_captured" },
+        { "trigger": "Not sure", "next": "disposition_send_info" }
+      ]
+    },
+    "ad_not_involved_in_football": {
+      "id": "wrong_person_ad_not_football",
+      "label": "AD says football is totally separate from them",
+      "script": "Totally fair — I don't want to waste your time. Does the football program operate independently on tools and budget, or is there someone at the AD level I should loop in?\n\n[If fully independent]: Got it — who's the best contact for the head football coach? Email or direct number?",
+      "branches": [
+        { "trigger": "Gives coach contact", "next": "referral_captured" },
+        { "trigger": "Can't help", "next": "disposition_not_now" }
+      ]
+    },
+    "office_no_coach_contact": {
+      "id": "wrong_person_office_no_info",
+      "label": "Office staff can't or won't help",
+      "script": "No problem at all — is there a general email I could use to reach out to Coach [Last Name] directly? Even the school's main football email works.",
+      "note": "If they won't provide anything, log the school, note the gatekeeper block, and move to email outreach via school website.",
+      "disposition": "disposition_send_info"
+    }
+  },
+
+  "re_engage_scripts": {
+    "note": "Use these for any contact who was previously warm — requested info, said call back later, or went cold after initial interest.",
+    "sent_info_no_response": {
+      "id": "reengage_sent_info",
+      "label": "Sent info, no response — follow-up call",
+      "script": "Coach [Last Name], this is [Your Name] with XIQ — I sent you a short note about [call sheet / wristband / self-scout — whatever they flagged] a couple weeks back.\n\nI'm not going to pitch you again — I just had one question: when you saw it, did it look like something that could actually help your staff, or was it just not the right fit?\n\n[Let them answer — this is a temperature check, not a pitch]",
+      "branches": [
+        { "trigger": "Actually looks interesting", "next": "book_demo" },
+        { "trigger": "Haven't looked yet", "next": "reengage_havent_looked" },
+        { "trigger": "Not a fit", "next": "objection_not_interested" }
+      ]
+    },
+    "reengage_havent_looked": {
+      "id": "reengage_havent_looked",
+      "label": "They haven't looked at the info yet",
+      "script": "No worries — summer gets crazy fast.\n\nHonestly, the info is fine but this is one of those things that's way faster to understand live. What if we just do a 15-minute look this week — if it's not relevant, you tell me in the first five minutes and we hang up.\n\nDoes [specific day] work?",
+      "branches": [
+        { "trigger": "Sure", "next": "book_demo" },
+        { "trigger": "Not yet", "next": "disposition_not_now" }
+      ]
+    },
+    "said_call_back_later": {
+      "id": "reengage_call_back",
+      "label": "Previously said 'call me back later'",
+      "script": "Coach [Last Name], [Your Name] with XIQ — you mentioned [spring / summer / after the season] would be a better time, so I wanted to circle back.\n\nStill worth a quick look? The reason I'd push for now is that staffs who set this up before camp get a lot more out of it than ones who try to onboard in-season.\n\nWould 15 minutes this week work?",
+      "branches": [
+        { "trigger": "Sure", "next": "book_demo" },
+        { "trigger": "Still not ready", "next": "objection_call_after_season" },
+        { "trigger": "Not interested anymore", "next": "objection_not_interested" }
+      ]
+    },
+    "demo_no_show": {
+      "id": "reengage_no_show",
+      "label": "Booked demo but no-showed",
+      "script": "Coach [Last Name], [Your Name] with XIQ — we had a 15-minute walkthrough on the calendar for [date/time] and I think something came up on your end.\n\nNo worries at all — happens every summer. Want to find a new time, or is the timing just not right?",
+      "branches": [
+        { "trigger": "Let's reschedule", "next": "book_demo" },
+        { "trigger": "Not right now", "next": "disposition_not_now" }
+      ]
+    },
+    "ad_reengage_after_coach_referral": {
+      "id": "reengage_ad_post_referral",
+      "label": "Re-engaging AD after coach showed interest",
+      "script": "Hi [AD Last Name], [Your Name] with XIQ — I spoke with Coach [Last Name] and he took a look at XIQ, the football operations platform we work with at Alabama, Baylor, and Hawaii.\n\nHe thought it could be useful for the staff. I wanted to loop you in since you mentioned you're involved on the budget side.\n\nDo you have 15 minutes this week to take a quick look together?",
+      "branches": [
+        { "trigger": "Sure", "next": "ad_book_joint_demo" },
+        { "trigger": "Just coach's call", "next": "ad_routes_to_coach" },
+        { "trigger": "Send me info", "next": "ad_objection_send_info" }
+      ]
+    }
+  },
+
+  "competitor_handling": {
+    "note": "Primary competitor is Google Sheets / Excel — inertia, not a named product. No dedicated HS football planning tool owns the market yet. If a coach claims a 'system,' it is almost always a combination of Sheets, PDFs, and Hudl.",
+    "google_sheets_as_competitor": {
+      "id": "competitor_google_sheets",
+      "label": "Coach says Google Sheets is their system",
+      "script": "Yeah — that's honestly where most good staffs are right now. Google Sheets works, and I get why it's the default.\n\nThe problem we hear consistently is this: when the call sheet changes, now the wristband tab is wrong, the practice script doesn't match, and whoever is maintaining self-scout has to go update that separately. You're basically a spreadsheet admin during game week.\n\nXIQ connects those pieces so when the play inventory changes, everything downstream updates. Call sheet, script, wristband, self-scout — one system.\n\nMost coaches don't realize how much time the Sheets maintenance takes until they see what it looks like without it.\n\nWould it be worth 15 minutes just to see the difference?",
+      "branches": [
+        { "trigger": "Sure, let's look", "next": "book_demo" },
+        { "trigger": "We've got it dialed in", "next": "objection_have_system" },
+        { "trigger": "No budget to switch", "next": "objection_no_budget" }
+      ]
+    },
+    "claims_dedicated_system": {
+      "id": "competitor_dedicated_system",
+      "label": "Coach claims they use a dedicated system (not Sheets)",
+      "script": "Interesting — what are you using?\n\n[Let them answer and log it]\n\nGot it. Does it handle all of it — play inventory, call sheet, practice script, wristband, and self-scout — or is it mainly one piece of that?",
+      "note": "Most of the time they'll admit it only handles one piece. If they describe a true end-to-end system, log it as not a fit and note the tool name for competitive intel.",
+      "branches": [
+        { "trigger": "Only handles part of it", "next": "coach_uses_excel" },
+        { "trigger": "Handles all of it", "next": "disposition_not_a_fit_competitor" }
+      ]
+    },
+    "disposition_not_a_fit_competitor": {
+      "id": "disposition_not_a_fit_competitor",
+      "label": "True competitive loss — log for intel",
+      "script": "Respect that — sounds like you guys are in good shape. What are you using? I like to know what's working out there.\n\n[Log tool name. Thank them. Move on.]",
+      "disposition": "not_a_fit",
+      "required_fields": ["existing_system", "suppress_future_outreach"],
+      "note": "Log the competitor name in the CRM. This is competitive intelligence — track which tools come up repeatedly."
+    }
+  },
+
+  "voicemails": {
+    "coach_voicemail": {
+      "id": "coach_voicemail",
+      "label": "Coach voicemail",
+      "script": "Coach [Last Name], this is [Your Name] with XIQ.\n\nWe work with programs at Alabama, Baylor, Hawaii, and a lot of high school staffs on one thing: organizing game-week prep — play inventory, call sheets, practice scripts, wristbands, self-scout — so it's not scattered across Excel, Hudl notes, and PDFs.\n\nWanted to see if it would be worth showing you a quick 15-minute walkthrough. I'll send a short email too.\n\nAgain, [Your Name] with XIQ."
+    },
+    "ad_voicemail": {
+      "id": "ad_voicemail",
+      "label": "AD voicemail",
+      "script": "Hi [AD Last Name], this is [Your Name] with XIQ.\n\nWe help high school football programs give their coaching staff a cleaner system for weekly game prep — the same workflow staffs at Alabama, Baylor, and Hawaii are using.\n\nI wanted to see whether this should go through you, Coach [Last Name], or someone else on the football staff.\n\nI'll send a short email as well. Again, [Your Name] with XIQ."
+    }
+  },
+
+  "follow_up_emails": {
+    "coach_email": {
+      "id": "coach_email",
+      "label": "Post-call coach email",
+      "subject": "XIQ for [School] football",
+      "body": "Coach [Last Name],\n\nGood speaking with you.\n\nXIQ helps football staffs organize the weekly offensive workflow in one place: play inventory, practice script, call sheet, wristband, and self-scout.\n\nStaffs at Alabama, Baylor, and Hawaii are running this workflow. The high school version is the same system — built for what a HS staff actually has time to manage.\n\nWorth a quick 15-minute look to see if it would fit how your staff operates?\n\nBest,\n[Your Name]"
+    },
+    "ad_email": {
+      "id": "ad_email",
+      "label": "Post-call AD email",
+      "subject": "XIQ / [School] football program",
+      "body": "Hi [AD Last Name],\n\nGood speaking with you.\n\nXIQ is a football operations platform built for high school staffs. It helps coaches organize play inventory, practice scripts, call sheets, wristbands, and self-scout in one place — the same workflow used at Alabama, Baylor, and Hawaii.\n\nThis is not a Hudl replacement. It supports the weekly coaching workflow around game planning and staff organization.\n\nI'd be happy to show Coach [Last Name] a short walkthrough and bring you in if there's interest.\n\nBest,\n[Your Name]"
+    }
+  },
+
+  "gatekeeper": {
+    "id": "gatekeeper",
+    "label": "School office / gatekeeper",
+    "nodes": {
+      "initial": {
+        "script": "Hi, I'm trying to reach Coach [Last Name], the head football coach. Is he available?",
+        "branches": [
+          { "trigger": "What's it regarding?", "next": "gatekeeper_what_regarding" },
+          { "trigger": "Email him", "next": "gatekeeper_email" },
+          { "trigger": "He's in class / teaching", "next": "gatekeeper_timing" }
+        ]
+      },
+      "gatekeeper_what_regarding": {
+        "script": "It's regarding a football operations tool for call sheets, practice scripts, wristbands, and weekly game planning."
+      },
+      "gatekeeper_email": {
+        "script": "No problem — what's the best email for Coach [Last Name]? And does he prefer calls at the school number or another line?"
+      },
+      "gatekeeper_timing": {
+        "script": "Totally understand — is there usually a better time to catch him? Before school, lunch, or after practice?"
+      }
+    }
+  },
+
+  "discovery_questions": {
+    "coach": {
+      "workflow": [
+        "How are you building your call sheet right now?",
+        "Are wristbands managed in Excel or somewhere else?",
+        "Where does your play inventory live today?",
+        "Who owns the weekly practice script?",
+        "Do you have a clean way to go from play inventory to practice script to call sheet?"
+      ],
+      "pain": [
+        "What part of game-week prep is the most manual for your staff?",
+        "How long does it take to update your wristbands when the call sheet changes?",
+        "Is self-scout something you guys do weekly, or only when there's time?",
+        "Does your staff have one source of truth, or does each coach manage their own version?",
+        "How many coaches are touching the offensive plan during game week?"
+      ],
+      "self_scout": [
+        "Are you guys self-scouting by down, distance, personnel, formation, and concept right now?",
+        "Is that easy to pull, or is it more of a manual Sunday/Monday project?"
+      ],
+      "timing": [
+        "When do you usually evaluate new tools — spring, summer, before camp, or after the season?",
+        "Are you already preparing your install and offensive system for next season?"
+      ]
+    },
+    "ad": [
+      "Do football software requests usually go through you, the head coach, boosters, or the district?",
+      "Are you involved when coaches ask for tools that support their program?",
+      "Would this type of tool usually come from football budget, booster support, or athletic department budget?",
+      "Do you know if the football staff is still building call sheets and wristbands manually?"
+    ]
+  },
+
+  "call_sequence": [
+    { "step": 1, "action": "Call 1", "goal": "Reach contact, run script, book demo" },
+    { "step": 2, "action": "Voicemail 1", "goal": "Leave persona-specific voicemail if no answer" },
+    { "step": 3, "action": "Email 1", "goal": "Send follow-up email same day" },
+    { "step": 4, "action": "Call 2", "goal": "Reference prior call/email — 'I left a quick note about XIQ — the system for call sheets, scripts, wristbands, self-scout. Quick question: are you still managing most of that manually?'" },
+    { "step": 5, "action": "Email 2", "goal": "Short value email with one use case" },
+    { "step": 6, "action": "Call 3", "goal": "Referral angle — 'Coach, should I be speaking with you on this, or is your OC the better person for call sheet and script workflow?'" }
+  ],
+
+  "dispositions": {
+    "demo_booked": {
+      "label": "Demo Booked",
+      "required_fields": ["date_time", "attendees", "roles", "current_workflow", "main_pain", "budget_path"]
+    },
+    "disposition_send_info": {
+      "label": "Send Info",
+      "required_fields": ["info_requested", "main_interest_area", "follow_up_date", "email_confirmed"]
+    },
+    "referral": {
+      "label": "Referral",
+      "required_fields": ["referred_name", "referred_role", "referred_contact", "permission_to_mention"]
+    },
+    "not_now": {
+      "label": "Not Now",
+      "required_fields": ["reason", "better_timing", "follow_up_date"]
+    },
+    "not_a_fit": {
+      "label": "Not a Fit",
+      "required_fields": ["reason", "existing_system", "suppress_future_outreach"]
+    }
+  },
+
+  "qualification_checklist": {
+    "fields": [
+      { "key": "persona", "options": ["Head Coach", "OC", "QB Coach", "AD", "Assistant", "Office Staff"] },
+      { "key": "current_workflow", "options": ["Excel", "Google Sheets", "Hudl Notes", "Paper", "PDFs", "Dedicated System", "Other"] },
+      { "key": "main_pain", "options": ["Call Sheet", "Practice Script", "Wristband", "Play Inventory", "Self-Scout", "Staff Collaboration", "Unknown"] },
+      { "key": "decision_owner", "options": ["Head Coach", "AD", "Booster Club", "District", "Unknown"] },
+      { "key": "timing", "options": ["Spring", "Summer", "Before Camp", "In-Season", "Post-Season"] },
+      { "key": "demo_status", "options": ["Booked", "Send Info", "Call Back", "Not a Fit"] },
+      { "key": "next_step", "options": ["Demo", "Video", "Intro to OC", "Intro to AD", "Follow-Up Date"] }
+    ]
+  },
+
+  "language_rules": {
+    "use": [
+      "Call sheet", "Wristband", "Practice script", "Install", "Play inventory",
+      "Personnel groupings", "Formation", "Motion", "Concept", "Self-scout",
+      "Game week", "Offensive staff", "Sunday/Monday prep", "OC", "QB coach",
+      "Head coach workflow", "Weekly offensive workflow", "Game-week prep",
+      "One source of truth", "Planning layer around Hudl", "Staff workflow"
+    ],
+    "avoid": [
+      "AI-powered", "Revolutionary", "Game-changing", "All-in-one platform",
+      "Can I pick your brain?", "Just checking in", "Touching base", "Circle back"
+    ]
+  }
+}

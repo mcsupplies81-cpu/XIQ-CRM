@@ -20,8 +20,9 @@ export default async function handler(req, res) {
   const userId = await getUserId(req)
   if (!userId) return res.status(401).json({ error: 'Unauthorized' })
 
-  // slug is undefined for /api/templates, ['id'] for /api/templates/:id
-  const id = req.query.slug?.[0] || null
+  // Parse ID from URL path — more reliable than req.query.slug with UUIDs
+  const urlParts = (req.url || '').split('?')[0].split('/').filter(Boolean)
+  const id = urlParts.length >= 3 ? urlParts[urlParts.length - 1] : null
 
   // ── /api/templates/:id ───────────────────────────────────────────────────────
   if (id) {

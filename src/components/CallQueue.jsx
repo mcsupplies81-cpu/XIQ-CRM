@@ -137,6 +137,8 @@ export default function CallQueue() {
   const [error, setError] = useState('')
   const [pendingFollowUp, setPendingFollowUp] = useState(null)
   const [selectedState, setSelectedState] = useState('')
+  const [selectedRole, setSelectedRole] = useState('')
+  const [selectedLevel, setSelectedLevel] = useState('')
 
   useEffect(() => {
     let active = true
@@ -220,15 +222,29 @@ export default function CallQueue() {
     return Array.from(states).sort()
   }, [allCallContacts])
 
+  const availableLevels = useMemo(() => {
+    const levels = new Set(allCallContacts.map((c) => c.school_level).filter(Boolean))
+    return Array.from(levels).sort()
+  }, [allCallContacts])
+
   const filteredQueue = useMemo(() => {
-    if (!selectedState) return queue
-    return queue.filter((c) => c.state === selectedState)
-  }, [queue, selectedState])
+    return queue.filter((c) => {
+      if (selectedState && c.state !== selectedState) return false
+      if (selectedRole && c.role !== selectedRole) return false
+      if (selectedLevel && c.school_level !== selectedLevel) return false
+      return true
+    })
+  }, [queue, selectedState, selectedRole, selectedLevel])
 
   function advanceQueue(contactId) {
     setQueue((current) => {
       const nextQueue = current.filter((contact) => String(contact.id) !== String(contactId))
-      const filtered = selectedState ? nextQueue.filter((c) => c.state === selectedState) : nextQueue
+      const filtered = nextQueue.filter((c) => {
+        if (selectedState && c.state !== selectedState) return false
+        if (selectedRole && c.role !== selectedRole) return false
+        if (selectedLevel && c.school_level !== selectedLevel) return false
+        return true
+      })
       const prevIndex = current.findIndex((contact) => String(contact.id) === String(contactId))
       const nextFiltered = filtered[prevIndex] || filtered[prevIndex - 1] || filtered[0] || null
       setSelectedContact(nextFiltered)
@@ -331,14 +347,38 @@ export default function CallQueue() {
       <section className="min-w-0 flex-1 p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-semibold text-gray-900">Call Queue</h1>
-          <div className="flex items-center gap-2">
-            {availableStates.length > 1 ? (
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Role filter pills */}
+            <div className="flex overflow-hidden rounded border border-gray-300 text-sm">
+              {['', 'HC', 'AD', 'OC'].map((role) => (
+                <button
+                  key={role || 'all'}
+                  type="button"
+                  onClick={() => { setSelectedRole(role); setSelectedContact(null) }}
+                  className={`px-3 py-1.5 transition-colors ${selectedRole === role ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                >
+                  {role || 'All'}
+                </button>
+              ))}
+            </div>
+            {/* Level filter — only shown when multiple levels exist */}
+            {availableLevels.length > 1 && (
+              <select
+                value={selectedLevel}
+                onChange={(e) => { setSelectedLevel(e.target.value); setSelectedContact(null) }}
+                className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 outline-none"
+              >
+                <option value="">All Levels</option>
+                {availableLevels.map((level) => (
+                  <option key={level} value={level}>{level}</option>
+                ))}
+              </select>
+            )}
+            {/* State filter */}
+            {availableStates.length > 1 && (
               <select
                 value={selectedState}
-                onChange={(e) => {
-                  setSelectedState(e.target.value)
-                  setSelectedContact(null)
-                }}
+                onChange={(e) => { setSelectedState(e.target.value); setSelectedContact(null) }}
                 className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 outline-none"
               >
                 <option value="">All States</option>
@@ -346,7 +386,7 @@ export default function CallQueue() {
                   <option key={state} value={state}>{state}</option>
                 ))}
               </select>
-            ) : null}
+            )}
             <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">{filteredQueue.length} remaining</span>
           </div>
         </div>
@@ -376,11 +416,13 @@ export default function CallQueue() {
                 const followUpAt = isoDate(contact.follow_up_at)
 
                 return (
-                  <button
+                  <div
                     key={contact.id}
-                    type="button"
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setSelectedContact(contact)}
-                    className={`block w-full px-4 py-3 text-left transition-colors hover:bg-gray-50 ${selectedContact?.id === contact.id ? 'bg-blue-50' : 'bg-white'}`}
+                    onKeyDown={(e) => e.key === 'Enter' && setSelectedContact(contact)}
+                    className={`cursor-pointer px-4 py-3 transition-colors hover:bg-gray-50 ${selectedContact?.id === contact.id ? 'bg-blue-50' : 'bg-white'}`}
                   >
                     <div className="mb-2 flex items-start justify-between gap-3">
                       <div className="flex min-w-0 items-center gap-2.5">
@@ -399,10 +441,20 @@ export default function CallQueue() {
                       </div>
                     </div>
                     <div className="flex items-center justify-between gap-3 text-sm">
-                      <span className={contact.phone ? 'text-gray-700' : 'text-gray-400'}>{contact.phone || 'No phone'}</span>
+                      {contact.phone ? (
+                        <a
+                          href={`tel:${contact.phone}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="font-medium text-blue-600 hover:underline"
+                        >
+                          {contact.phone}
+                        </a>
+                      ) : (
+                        <span className="text-gray-400">No phone</span>
+                      )}
                       <span className={`font-medium ${followUpColorClasses(followUpAt, today)}`}>{followUpAt || '—'}</span>
                     </div>
-                  </button>
+                  </div>
                 )
               })}
             </div>

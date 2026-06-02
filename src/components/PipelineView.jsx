@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  closestCenter,
+  closestCorners,
   DndContext,
   DragOverlay,
   PointerSensor,
@@ -84,7 +84,7 @@ function PipelineColumn({ status, contacts }) {
         </div>
       </div>
       <SortableContext items={contacts.map((c) => String(c.id))} strategy={verticalListSortingStrategy}>
-        <div ref={setNodeRef} className="flex-1 px-3 pb-3">
+        <div ref={setNodeRef} className="flex-1 px-3 pb-3 min-h-[400px]">
           {contacts.map((contact) => (
             <PipelineCard key={contact.id} contact={contact} />
           ))}
@@ -195,7 +195,7 @@ export default function PipelineView() {
       ) : (
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCenter}
+          collisionDetection={closestCorners}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
           onDragCancel={handleDragCancel}

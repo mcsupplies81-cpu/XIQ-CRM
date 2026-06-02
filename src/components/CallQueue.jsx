@@ -8,6 +8,18 @@ const statusOrder = {
   Responded: 2,
 }
 
+// Days until next call attempt (index = current call_count before this call)
+const SEQUENCE_DAYS = [2, 3, 4, 5] // attempt 1→2, 2→3, 3→4, 4→5
+
+// What Malcolm should know going into each attempt
+const SEQUENCE_HINTS = [
+  'Run the opener. Find out who owns the call sheet and wristband workflow.',
+  'Reference your last call + the email they received. Get to the question fast.',
+  'Referral angle — "Should I be speaking with your OC instead?"',
+  'One direct question: "Is the timing just off, or is it not a fit?"',
+  'Final attempt — will auto-close if no contact today.',
+]
+
 const outcomeButtonClasses = {
   'No Answer': 'bg-gray-600 hover:bg-gray-700',
   'Not Interested': 'bg-red-600 hover:bg-red-700',
@@ -278,22 +290,38 @@ export default function CallQueue() {
     setActionLoading(true)
     setError('')
 
+    const currentCallCount = selectedContact.call_count || 0
+    const isNoContact = outcome.label === 'No Answer' || outcome.label === 'Left Voicemail'
+    const isAutoClose = isNoContact && currentCallCount + 1 >= 5
+
     try {
-      const nextStatus = outcome.status || selectedContact.status || 'New'
+      const nextStatus = isAutoClose ? 'Closed' : (outcome.status || selectedContact.status || 'New')
+
       const patchResponse = await fetch(`/api/contacts/${selectedContact.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: nextStatus }),
       })
-
       if (!patchResponse.ok) throw new Error('Failed to update contact')
 
-      await postCallActivity(selectedContact.id, outcome.notes)
+      await postCallActivity(selectedContact.id, isAutoClose ? `${outcome.notes} — auto-closed after 5 attempts` : outcome.notes)
       setCallsToday((n) => n + 1)
 
-      if (outcome.status === 'Closed') {
+      if (isNoContact && !isAutoClose) {
+        // Auto-schedule next call based on sequence position — no manual picking needed
+        const days = SEQUENCE_DAYS[currentCallCount] ?? 7
+        const followUpDate = new Date()
+        followUpDate.setDate(followUpDate.getDate() + days)
+        await fetch(`/api/contacts/${selectedContact.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ follow_up_at: followUpDate.toISOString().slice(0, 10) }),
+        })
+        advanceQueue(selectedContact.id)
+      } else if (isAutoClose || outcome.status === 'Closed') {
         advanceQueue(selectedContact.id)
       } else {
+        // Appointment Set — still prompt so Malcolm can set the demo reminder
         setPendingFollowUp({ contactId: selectedContact.id, name: selectedContact.name })
       }
     } catch (actionError) {
@@ -434,9 +462,15 @@ export default function CallQueue() {
                       </div>
                       <div className="flex shrink-0 flex-wrap justify-end gap-1">
                         <span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">{contact.role || '—'}</span>
-                        {contact.call_count > 0 ? (
-                          <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">{contact.call_count} calls</span>
-                        ) : null}
+                        {(() => {
+                          const attempt = (contact.call_count || 0) + 1
+                          const cls = attempt >= 5
+                            ? 'bg-red-100 text-red-700'
+                            : attempt >= 3
+                              ? 'bg-amber-100 text-amber-700'
+                              : 'bg-blue-50 text-blue-600'
+                          return <span className={`rounded px-2 py-0.5 text-xs font-semibold ${cls}`}>Attempt {attempt}</span>
+                        })()}
                         <StatusDot status={contact.status} />
                       </div>
                     </div>
@@ -504,6 +538,31 @@ export default function CallQueue() {
                 <dd className="mt-1 text-gray-900">{selectedContact.x_handle || '—'}</dd>
               </div>
             </dl>
+
+            {/* Sequence hint */}
+            {!pendingFollowUp && (() => {
+              const attempt = (selectedContact.call_count || 0) + 1
+              const hint = SEQUENCE_HINTS[Math.min(attempt - 1, 4)]
+              const isLast = attempt >= 5
+              return (
+                <div className={`rounded border px-3 py-2.5 ${isLast ? 'border-red-200 bg-red-50' : 'border-amber-200 bg-amber-50'}`}>
+                  <div className="mb-1 flex items-center justify-between gap-2">
+                    <span className={`text-xs font-bold ${isLast ? 'text-red-700' : 'text-amber-800'}`}>
+                      Attempt {attempt} of 5
+                    </span>
+                    {!isLast && (
+                      <span className="text-xs text-amber-600">
+                        Next call auto-scheduled +{SEQUENCE_DAYS[(selectedContact.call_count || 0)] ?? 7}d if no answer
+                      </span>
+                    )}
+                    {isLast && (
+                      <span className="text-xs font-semibold text-red-600">Auto-closes if no contact</span>
+                    )}
+                  </div>
+                  <p className={`text-xs ${isLast ? 'text-red-700' : 'text-amber-700'}`}>{hint}</p>
+                </div>
+              )
+            })()}
 
             {pendingFollowUp ? (
               <div className="rounded border border-amber-200 bg-amber-50 p-4">

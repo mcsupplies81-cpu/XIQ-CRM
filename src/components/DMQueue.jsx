@@ -74,6 +74,12 @@ export default function DMQueue() {
   const [dmTemplates, setDmTemplates] = useState([])
   const [copiedId, setCopiedId] = useState(null)
 
+  // Quick-log form state
+  const [logName, setLogName] = useState('')
+  const [logHandle, setLogHandle] = useState('')
+  const [logSubmitting, setLogSubmitting] = useState(false)
+  const [logSuccess, setLogSuccess] = useState(false)
+
   useEffect(() => {
     let active = true
 
@@ -219,6 +225,70 @@ export default function DMQueue() {
     }
   }
 
+  async function logDM(e) {
+    e.preventDefault()
+    const name = logName.trim()
+    const handle = normalizeXHandle(logHandle)
+    if (!name && !handle) return
+
+    setLogSubmitting(true)
+    try {
+      // Try to find existing contact by x_handle or name
+      let contactId = null
+      if (handle) {
+        const match = contacts.find((c) => normalizeXHandle(c.x_handle) === handle)
+        if (match) contactId = String(match.id)
+      }
+      if (!contactId && name) {
+        const match = contacts.find((c) => c.name.toLowerCase() === name.toLowerCase())
+        if (match) contactId = String(match.id)
+      }
+
+      if (contactId) {
+        // Log against existing contact
+        await fetch('/api/activities', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contact_id: contactId, type: 'dm', notes: `DM sent${handle ? ` (@${handle})` : ''}` }),
+        })
+        await fetch(`/api/contacts/${contactId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'Emailed' }),
+        })
+        setDmedTodayIds((cur) => new Set(cur).add(contactId))
+        setContacts((cur) => cur.map((c) => String(c.id) === contactId ? { ...c, status: 'Emailed' } : c))
+      } else {
+        // Contact not found — just log a note-only activity (no contact_id)
+        // Create a minimal contact so it's trackable
+        const res = await fetch('/api/contacts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: name || handle, x_handle: handle || null, status: 'Emailed', assigned_to: 'DMs' }),
+        })
+        if (res.ok) {
+          const newContact = await res.json()
+          await fetch('/api/activities', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contact_id: newContact.id, type: 'dm', notes: `DM sent${handle ? ` (@${handle})` : ''}` }),
+          })
+          setDmedTodayIds((cur) => new Set(cur).add(String(newContact.id)))
+        }
+      }
+
+      setDmCount((cur) => cur + 1)
+      setLogName('')
+      setLogHandle('')
+      setLogSuccess(true)
+      setTimeout(() => setLogSuccess(false), 2000)
+    } catch {
+      setError('Failed to log DM')
+    } finally {
+      setLogSubmitting(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-white p-6">
       <div className="mx-auto max-w-6xl">
@@ -242,6 +312,34 @@ export default function DMQueue() {
             <p className="text-sm font-medium text-gray-500">DMs sent today</p>
           </div>
         </header>
+
+        {/* Quick-log DM form */}
+        <section className="mb-4 rounded-xl border border-sky-200 bg-sky-50 p-4 shadow-sm">
+          <p className="mb-3 text-sm font-semibold text-sky-800">Log a DM sent</p>
+          <form onSubmit={logDM} className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <input
+              type="text"
+              value={logName}
+              onChange={(e) => setLogName(e.target.value)}
+              placeholder="Coach name"
+              className="rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-sky-400 sm:w-48"
+            />
+            <input
+              type="text"
+              value={logHandle}
+              onChange={(e) => setLogHandle(e.target.value)}
+              placeholder="@xhandle"
+              className="rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-sky-400 sm:w-40"
+            />
+            <button
+              type="submit"
+              disabled={logSubmitting || (!logName.trim() && !logHandle.trim())}
+              className="rounded bg-sky-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-sky-700 disabled:opacity-50"
+            >
+              {logSuccess ? '✓ Logged!' : logSubmitting ? 'Logging...' : 'Log DM'}
+            </button>
+          </form>
+        </section>
 
         <section className="mb-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

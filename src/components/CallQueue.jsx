@@ -151,6 +151,7 @@ export default function CallQueue() {
   const [selectedState, setSelectedState] = useState('')
   const [selectedRole, setSelectedRole] = useState('')
   const [selectedLevel, setSelectedLevel] = useState('')
+  const [cellOnly, setCellOnly] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -244,9 +245,10 @@ export default function CallQueue() {
       if (selectedState && c.state !== selectedState) return false
       if (selectedRole && c.role !== selectedRole) return false
       if (selectedLevel && c.school_level !== selectedLevel) return false
+      if (cellOnly && !c.cell_phone) return false
       return true
     })
-  }, [queue, selectedState, selectedRole, selectedLevel])
+  }, [queue, selectedState, selectedRole, selectedLevel, cellOnly])
 
   function advanceQueue(contactId) {
     setQueue((current) => {
@@ -255,6 +257,7 @@ export default function CallQueue() {
         if (selectedState && c.state !== selectedState) return false
         if (selectedRole && c.role !== selectedRole) return false
         if (selectedLevel && c.school_level !== selectedLevel) return false
+        if (cellOnly && !c.cell_phone) return false
         return true
       })
       const prevIndex = current.findIndex((contact) => String(contact.id) === String(contactId))
@@ -415,6 +418,14 @@ export default function CallQueue() {
                 ))}
               </select>
             )}
+            {/* Cell # only toggle */}
+            <button
+              type="button"
+              onClick={() => { setCellOnly((prev) => !prev); setSelectedContact(null) }}
+              className={`flex items-center gap-1.5 rounded border px-3 py-1.5 text-sm font-medium transition-colors ${cellOnly ? 'border-green-600 bg-green-600 text-white' : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'}`}
+            >
+              📱 Cell Only
+            </button>
             <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">{filteredQueue.length} remaining</span>
           </div>
         </div>
@@ -475,17 +486,27 @@ export default function CallQueue() {
                       </div>
                     </div>
                     <div className="flex items-center justify-between gap-3 text-sm">
-                      {contact.phone ? (
-                        <a
-                          href={`tel:${contact.phone}`}
-                          onClick={(e) => e.stopPropagation()}
-                          className="font-medium text-blue-600 hover:underline"
-                        >
-                          {contact.phone}
-                        </a>
-                      ) : (
-                        <span className="text-gray-400">No phone</span>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {contact.cell_phone ? (
+                          <a
+                            href={`tel:${contact.cell_phone}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="font-medium text-green-700 hover:underline"
+                          >
+                            📱 {contact.cell_phone}
+                          </a>
+                        ) : contact.phone ? (
+                          <a
+                            href={`tel:${contact.phone}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="font-medium text-blue-600 hover:underline"
+                          >
+                            {contact.phone}
+                          </a>
+                        ) : (
+                          <span className="text-gray-400">No phone</span>
+                        )}
+                      </div>
                       <span className={`font-medium ${followUpColorClasses(followUpAt, today)}`}>{followUpAt || '—'}</span>
                     </div>
                   </div>
@@ -521,15 +542,20 @@ export default function CallQueue() {
                 <dt className="font-medium text-gray-500">Email</dt>
                 <dd className="mt-1 break-all text-gray-900">{selectedContact.email || '—'}</dd>
               </div>
-              <div>
-                <dt className="font-medium text-gray-500">Phone</dt>
-                <dd className="mt-2">
-                  {selectedContact.phone ? (
-                    <a href={`tel:${selectedContact.phone}`} className="inline-flex rounded bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700">
-                      Call {selectedContact.phone}
+              <div className="col-span-2">
+                <dt className="font-medium text-gray-500">Cell Phone</dt>
+                <dd className="mt-2 flex flex-wrap gap-2">
+                  {selectedContact.cell_phone ? (
+                    <a href={`tel:${selectedContact.cell_phone}`} className="inline-flex rounded bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700">
+                      📱 Call Cell {selectedContact.cell_phone}
                     </a>
                   ) : (
-                    <span className="text-gray-400">No phone</span>
+                    <span className="text-gray-400">No cell</span>
+                  )}
+                  {selectedContact.phone && (
+                    <a href={`tel:${selectedContact.phone}`} className="inline-flex rounded bg-gray-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-600">
+                      ☎ Office {selectedContact.phone}
+                    </a>
                   )}
                 </dd>
               </div>

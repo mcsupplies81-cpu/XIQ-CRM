@@ -21,7 +21,7 @@ function divider() {
 
 async function notifySent({ to, name, school, step, subject, fromEmail }) {
   await post([
-    text(`*Sent* email ${step} of 3 to *${name}* (${school})\n>${subject}\nfrom ${fromEmail} -> ${to}`),
+    text(`*Sent* email ${step} of 4 to *${name}* (${school})\n>${subject}\nfrom ${fromEmail} -> ${to}`),
   ])
 }
 
@@ -51,11 +51,20 @@ async function notifyBounce({ to, name, school }) {
   await post([text(`:warning: Bounce: *${name}* (${school}) <${to}> — marked in CRM`)])
 }
 
-async function dailyDigest({ sent, replies, positives, bounces, date }) {
-  await post([
-    divider(),
-    text(`*XIQ Outbound — ${date}*\n*Sent:* ${sent}  |  *Replies:* ${replies}  |  *Positive:* ${positives}  |  *Bounces:* ${bounces}`),
-  ])
+async function dailyDigest({ sent, replies, positives, bounces, quarantined, opens, openRate, activeSequences, stepBreakdown, date }) {
+  const lines = [
+    `*XIQ Outbound — ${date}*`,
+    '',
+    `📤 *Sent today:* ${sent}   💬 *Replies:* ${replies}   🔥 *Positive:* ${positives}`,
+    `👁 *Opens today:* ${opens}   📬 *Open rate (all-time):* ${openRate}%`,
+    `⚠️ *Bounces:* ${bounces}   🚫 *Quarantined:* ${quarantined}`,
+    '',
+    `*Active sequences:* ${activeSequences}`,
+  ]
+  if (stepBreakdown) {
+    lines.push(`*Step breakdown:* E1: ${stepBreakdown[1] || 0}  E2: ${stepBreakdown[2] || 0}  E3: ${stepBreakdown[3] || 0}  E4: ${stepBreakdown[4] || 0}  Done: ${stepBreakdown.done || 0}`)
+  }
+  await post([divider(), text(lines.join('\n'))])
 }
 
 async function notifyHealthIssue({ issue }) {

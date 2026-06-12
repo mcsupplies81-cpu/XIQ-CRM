@@ -177,13 +177,36 @@ async function runDailySend() {
     await new Promise(r => setTimeout(r, 2000))
   }
 
-  // Daily digest
-  const replies = await sql`SELECT COUNT(*) FROM outbound_sequences WHERE status = 'replied' AND updated_at::date = ${today}`
+  // Gather stats for digest
+  const [repliesRow, opensToday, opensAll, emailsAll, activeSeqs, steps] = await Promise.all([
+    sql`SELECT COUNT(*) FROM outbound_sequences WHERE status = 'replied' AND updated_at::date = ${today}`,
+    sql`SELECT COUNT(*) FROM outbound_emails WHERE opened_at::date = ${today}`,
+    sql`SELECT COUNT(*) FROM outbound_emails WHERE opened_at IS NOT NULL`,
+    sql`SELECT COUNT(*) FROM outbound_emails`,
+    sql`SELECT COUNT(*) FROM outbound_sequences WHERE status IN ('queued','active')`,
+    sql`SELECT step, status, COUNT(*) as cnt FROM outbound_sequences GROUP BY step, status`,
+  ])
+
+  const totalEmails = Number(emailsAll[0].count)
+  const totalOpens = Number(opensAll[0].count)
+  const openRate = totalEmails > 0 ? Math.round((totalOpens / totalEmails) * 100) : 0
+
+  const stepBreakdown = { 1: 0, 2: 0, 3: 0, 4: 0, done: 0 }
+  for (const row of steps) {
+    if (row.status === 'completed') stepBreakdown.done += Number(row.cnt)
+    else if (row.step >= 0 && row.step <= 3) stepBreakdown[row.step + 1] += Number(row.cnt)
+  }
+
   await dailyDigest({
     sent,
-    replies: Number(replies[0].count),
+    replies: Number(repliesRow[0].count),
     positives: 0,
     bounces: bounced,
+    quarantined,
+    opens: Number(opensToday[0].count),
+    openRate,
+    activeSequences: Number(activeSeqs[0].count),
+    stepBreakdown,
     date: today,
   })
 

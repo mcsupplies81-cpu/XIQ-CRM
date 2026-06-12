@@ -1,105 +1,62 @@
-// Research scraper — pulls program-specific facts for email grounding
-// HS: MaxPreps | College: school athletics site + sports-reference
+// Research engine — Brave Search + Claude Haiku extraction
+// Searches for school-specific football facts, extracts structured data
 
-async function fetchHtml(url) {
+const Anthropic = require('@anthropic-ai/sdk')
+const client = new Anthropic.default()
+
+async function braveSearch(query) {
+  const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query)}&count=5&search_lang=en&country=us`
   const res = await fetch(url, {
     headers: {
-      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept': 'application/json',
+      'Accept-Encoding': 'gzip',
+      'X-Subscription-Token': process.env.BRAVE_SEARCH_API_KEY,
     },
-    signal: AbortSignal.timeout(10000),
+    signal: AbortSignal.timeout(8000),
   })
-  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`)
-  return res.text()
+  if (!res.ok) throw new Error(`Brave Search HTTP ${res.status}`)
+  const data = await res.json()
+  return (data.web?.results || [])
+    .map(r => `${r.title}\n${(r.description || '').replace(/<[^>]+>/g, '')}`)
+    .join('\n\n')
 }
 
-function extractText(html, pattern) {
-  const match = html.match(pattern)
-  return match ? match[1].trim() : null
-}
+async function extractResearch(snippets, schoolName, state, role) {
+  const msg = await client.messages.create({
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 300,
+    messages: [{
+      role: 'user',
+      content: `You are extracting football program facts from search snippets for a sales email.
 
-// MaxPreps search to find the school's football page
-async function findMaxPrepsUrl(schoolName, state) {
-  const query = encodeURIComponent(`${schoolName} ${state} football maxpreps.com`)
-  const url = `https://www.maxpreps.com/search/schools.aspx?q=${encodeURIComponent(schoolName + ' ' + state)}`
+School: ${schoolName}, ${state}
+Contact role: ${role}
+
+Search snippets:
+${snippets}
+
+Extract only facts that are clearly stated in the snippets above. Return a JSON object with these fields (use null if not found):
+- record: win-loss record e.g. "11-2" (most recent season)
+- stateRank: state ranking e.g. "#3 in Texas"
+- notableWin: one specific notable win or opponent e.g. "beat Southlake Carroll 42-28"
+- offensiveStyle: brief description e.g. "spread offense", "run-heavy Wing-T"
+- stateFact: state championship or playoff info e.g. "2024 6A-DII state champs", "5 straight playoff appearances"
+- enrollment: student enrollment number if mentioned
+
+Return ONLY the JSON object, no other text.`,
+    }],
+  })
   try {
-    const html = await fetchHtml(url)
-    const match = html.match(/href="(\/[^"]+football[^"]+)"/)
-    if (match) return `https://www.maxpreps.com${match[1]}`
-  } catch {}
-  return null
-}
-
-async function scrapeMaxPreps(schoolName, state) {
-  try {
-    const pageUrl = `https://www.maxpreps.com/search/schools.aspx?q=${encodeURIComponent(schoolName + ' ' + state + ' football')}`
-    const html = await fetchHtml(pageUrl)
-
-    // Parse record
-    const record = extractText(html, /(\d+-\d+(?:-\d+)?)\s*(?:overall|record)/i)
-
-    // Parse ranking
-    const ranking = extractText(html, /(?:ranked?|#)\s*(\d+)/i)
-
-    // Parse enrollment
-    const enrollment = extractText(html, /enrollment[:\s]+([0-9,]+)/i)
-
-    return {
-      source: 'maxpreps',
-      schoolName,
-      state,
-      record: record || null,
-      ranking: ranking ? `#${ranking}` : null,
-      enrollment: enrollment || null,
-      raw: html.slice(0, 2000),
-    }
-  } catch (err) {
-    return { source: 'maxpreps', schoolName, state, error: err.message }
-  }
-}
-
-// College: pull from school athletics site
-async function scrapeCollegeProgram(schoolName, athleticsDomain) {
-  try {
-    const url = `https://${athleticsDomain}/sports/football`
-    const html = await fetchHtml(url)
-    const record = extractText(html, /(\d+-\d+(?:-\d+)?)\s*(?:overall|record)/i)
-    const season = extractText(html, /(20\d\d)\s*(?:season|football)/i)
-    return {
-      source: 'athletics-site',
-      schoolName,
-      domain: athleticsDomain,
-      record: record || null,
-      season: season || null,
-      raw: html.slice(0, 2000),
-    }
-  } catch (err) {
-    return { source: 'athletics-site', schoolName, domain: athleticsDomain, error: err.message }
-  }
-}
-
-// Scrape a known MaxPreps schedule/profile page
-async function scrapeMaxPrepsUrl(url) {
-  try {
-    // Convert schedule URL to team page for richer data
-    const teamUrl = url.replace(/\/schedule\/?$/, '')
-    const html = await fetchHtml(teamUrl)
-    const record = extractText(html, /(\d+)-(\d+)(?:-(\d+))?\s*(?:overall)?/i)
-    const ranking = extractText(html, /(?:ranked?|state rank|#)\s*(\d+)/i)
-    const enrollment = extractText(html, /enrollment[:\s]+([0-9,]+)/i)
-    return {
-      record: record || null,
-      ranking: ranking ? `#${ranking}` : null,
-      enrollment: enrollment || null,
-    }
+    const raw = msg.content[0].text.trim().replace(/^```json\s*/i, '').replace(/```\s*$/, '')
+    return JSON.parse(raw)
   } catch {
-    return { record: null, ranking: null, enrollment: null }
+    return {}
   }
 }
 
-// Main entry — returns a research bundle for a contact
 async function getResearch(contact, school) {
-  const isCollege = ['FCS', 'FBS', 'D1', 'D2', 'D3', 'NAIA', 'JUCO'].includes(school.level)
+  const isCollege = school.level && !['HS', null].includes(school.level) &&
+    ['FCS', 'FBS', 'D1', 'D2', 'D3', 'NAIA', 'JUCO'].includes(school.level)
 
   if (isCollege) {
     return {
@@ -113,25 +70,40 @@ async function getResearch(contact, school) {
     }
   }
 
-  // High school: use stored MaxPreps URL if available, else fall back to search
-  let data = { record: null, ranking: null, enrollment: null }
-  if (school.maxpreps_url) {
-    data = await scrapeMaxPrepsUrl(school.maxpreps_url)
-  } else {
-    const scraped = await scrapeMaxPreps(school.name, school.state)
-    data = { record: scraped.record, ranking: scraped.ranking, enrollment: scraped.enrollment }
-  }
+  // High school: search + extract
+  try {
+    const query = `"${school.name}" ${school.state} high school football 2024 2025 season record`
+    const snippets = await braveSearch(query)
 
-  return {
-    type: 'highschool',
-    schoolName: school.name,
-    state: school.state,
-    coachName: contact.name,
-    role: contact.role,
-    record: data.record,
-    ranking: data.ranking,
-    enrollment: data.enrollment,
+    if (!snippets || snippets.length < 50) {
+      return { type: 'highschool', schoolName: school.name, state: school.state, coachName: contact.name, role: contact.role }
+    }
+
+    const facts = await extractResearch(snippets, school.name, school.state, contact.role)
+
+    return {
+      type: 'highschool',
+      schoolName: school.name,
+      state: school.state,
+      coachName: contact.name,
+      role: contact.role,
+      record: facts.record || null,
+      stateRank: facts.stateRank || null,
+      notableWin: facts.notableWin || null,
+      offensiveStyle: facts.offensiveStyle || null,
+      stateFact: facts.stateFact || null,
+      enrollment: facts.enrollment || null,
+      notes: school.notes || null,
+    }
+  } catch (err) {
+    return {
+      type: 'highschool',
+      schoolName: school.name,
+      state: school.state,
+      coachName: contact.name,
+      role: contact.role,
+    }
   }
 }
 
-module.exports = { getResearch, scrapeMaxPreps, scrapeCollegeProgram }
+module.exports = { getResearch }

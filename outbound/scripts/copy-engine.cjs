@@ -72,12 +72,13 @@ Social proof (one line, woven in naturally):
 ${isCollege ? SOCIAL_PROOF_COLLEGE : SOCIAL_PROOF_HS}
 
 Rules -- hard constraints:
+- SUBJECT LINE: max 6 words. Short, plain, direct. Examples: "game week prep", "quick question", "your call sheet", "before next season". Never put the coach's name, program stats, or a full sentence in the subject. The personalized hook belongs in the body opener, not the subject.
 - NEVER use em dashes (—). Use commas or periods.
 - No slop: no "hope you're doing well", "I wanted to reach out", "just following up", "congrats on a great season", "as a coach"
-- If research has a record, ranking, or notable win — open with it. "A 14-1 season this past year..." or "Going undefeated this past year..." Not with the product name.
+- Open the body with the most specific thing from the research (coachTenure, coachBackground, record, programHistory) — that personal detail goes HERE, in sentence one of the body.
 - Any stat or record you mention must come from the research bundle. Never invent.
 - When referencing a season record, always say "this past year" or "last season" — never "this year" or "this season."
-- Lead with their program or the problem. Do NOT pitch XIQ in the first sentence.
+- Do NOT pitch XIQ in the first sentence.
 - Max 150 words. Shorter is better.
 - One clear ask: "Worth 15 minutes?" or similar.
 - Sign off: Cameron / XIQ (two lines)
@@ -104,8 +105,9 @@ Research bundle (use only if something concrete is there, do not invent):
 ${JSON.stringify(research, null, 2)}
 
 Rules:
+- SUBJECT LINE: max 6 words. E.g. "the wristband problem", "wristbands every week". Short and plain.
 - NEVER use em dashes (—)
-- No "quick question", no slop phrases
+- No slop phrases
 - Max 80 words
 - Sign off: Cameron / XIQ
 
@@ -133,6 +135,7 @@ Research bundle (use only what's specific, do not invent):
 ${JSON.stringify(research, null, 2)}
 
 Rules:
+- SUBJECT LINE: max 6 words. E.g. "the spreadsheet you're still using", "four files, one system". Short.
 - NEVER use em dashes (—)
 - Max 100 words
 - No slop
@@ -152,6 +155,7 @@ Tone: honest, zero pressure. If game week prep is already smooth — XIQ isn't f
 One last ask: 15 minutes, no pitch, just the product. Reply or grab time.
 
 Rules:
+- SUBJECT LINE: max 5 words. E.g. "last one", "one last look". Very short.
 - NEVER use em dashes (—)
 - Max 60 words
 - No slop
@@ -176,6 +180,11 @@ async function generateEmail(step, research, contact, school) {
     const lines = output.split('\n')
     const subject = lines[0].trim().replace(/^subject:\s*/i, '').replace(/—/g, ',').replace(/ -- /g, ', ')
     const body = lines.slice(2).join('\n').trim()
+
+    if (subject.split(/\s+/).length > 8) {
+      console.log(`  Attempt ${attempt} failed: subject too long (${subject.split(/\s+/).length} words)`)
+      continue
+    }
 
     const result = validate(body, research)
     if (result.pass) {

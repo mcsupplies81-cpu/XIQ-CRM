@@ -68,10 +68,15 @@ function checkGrounding(body, research) {
 }
 
 // Any score like "31-24" or "47-12" must appear in research
+// Excludes ranges followed by unit words (e.g. "4-6 hours", "2-3 days")
 function checkStats(body, research) {
   const researchText = JSON.stringify(research).toLowerCase()
   const scores = body.match(/\d{1,3}-\d{1,3}/g) || []
+  const unitWords = /^\s*(hours?|minutes?|yards?|points?|lbs?|days?|weeks?|months?|years?|minutes?|seconds?)/i
   for (const score of scores) {
+    const idx = body.indexOf(score)
+    const after = body.slice(idx + score.length)
+    if (unitWords.test(after)) continue
     if (!researchText.includes(score)) {
       return { pass: false, reason: `ungrounded score: ${score}` }
     }

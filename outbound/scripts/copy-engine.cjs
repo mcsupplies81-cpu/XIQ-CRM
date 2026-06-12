@@ -50,6 +50,7 @@ Rules — hard constraints:
 - No slop: no "hope you're doing well", "i wanted to reach out", "just following up", "congrats on a great season", "as a coach", etc.
 - Do NOT pitch the product in the first sentence. Lead with something specific about their program or the problem.
 - Any score, record, or stat you mention must come from the research bundle above. Do not invent.
+- When referencing a season record, always say "this past year" or "last season" — never "this year" or "this season." The season is already over.
 - Max 150 words. Shorter is better.
 - One clear ask at the end: "Worth 15 minutes?" or similar. One question only.
 - Sign off: Cameron / XIQ (two lines, nothing else)

@@ -110,7 +110,7 @@ async function generateEmail(step, research, contact, school) {
 
     const output = msg.content[0].text.trim()
     const lines = output.split('\n')
-    const subject = lines[0].trim()
+    const subject = lines[0].trim().replace(/^subject:\s*/i, '')
     const body = lines.slice(2).join('\n').trim()
 
     const result = validate(body, research)

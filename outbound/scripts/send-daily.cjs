@@ -178,13 +178,23 @@ async function runDailySend() {
   }
 
   // Gather stats for digest
-  const [repliesRow, opensToday, opensAll, emailsAll, activeSeqs, steps] = await Promise.all([
+  const [repliesRow, opensToday, opensAll, emailsAll, activeSeqs, steps, inboxStats] = await Promise.all([
     sql`SELECT COUNT(*) FROM outbound_sequences WHERE status = 'replied' AND updated_at::date = ${today}`,
     sql`SELECT COUNT(*) FROM outbound_emails WHERE opened_at::date = ${today}`,
     sql`SELECT COUNT(*) FROM outbound_emails WHERE opened_at IS NOT NULL`,
     sql`SELECT COUNT(*) FROM outbound_emails`,
     sql`SELECT COUNT(*) FROM outbound_sequences WHERE status IN ('queued','active')`,
     sql`SELECT step, status, COUNT(*) as cnt FROM outbound_sequences GROUP BY step, status`,
+    sql`
+      SELECT
+        from_email,
+        COUNT(*) as sent,
+        COUNT(opened_at) as opens,
+        COUNT(CASE WHEN sent_at::date = ${today} THEN 1 END) as sent_today
+      FROM outbound_emails
+      GROUP BY from_email
+      ORDER BY sent DESC
+    `,
   ])
 
   const totalEmails = Number(emailsAll[0].count)
@@ -207,6 +217,7 @@ async function runDailySend() {
     openRate,
     activeSequences: Number(activeSeqs[0].count),
     stepBreakdown,
+    inboxStats,
     date: today,
   })
 

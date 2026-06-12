@@ -51,7 +51,7 @@ async function notifyBounce({ to, name, school }) {
   await post([text(`:warning: Bounce: *${name}* (${school}) <${to}> — marked in CRM`)])
 }
 
-async function dailyDigest({ sent, replies, positives, bounces, quarantined, opens, openRate, activeSequences, stepBreakdown, date }) {
+async function dailyDigest({ sent, replies, positives, bounces, quarantined, opens, openRate, activeSequences, stepBreakdown, inboxStats, date }) {
   const lines = [
     `*XIQ Outbound — ${date}*`,
     '',
@@ -62,7 +62,19 @@ async function dailyDigest({ sent, replies, positives, bounces, quarantined, ope
     `*Active sequences:* ${activeSequences}`,
   ]
   if (stepBreakdown) {
-    lines.push(`*Step breakdown:* E1: ${stepBreakdown[1] || 0}  E2: ${stepBreakdown[2] || 0}  E3: ${stepBreakdown[3] || 0}  E4: ${stepBreakdown[4] || 0}  Done: ${stepBreakdown.done || 0}`)
+    lines.push(`*Pipeline:* E1: ${stepBreakdown[1] || 0}  E2: ${stepBreakdown[2] || 0}  E3: ${stepBreakdown[3] || 0}  E4: ${stepBreakdown[4] || 0}  Done: ${stepBreakdown.done || 0}`)
+  }
+  if (inboxStats && inboxStats.length > 0) {
+    lines.push('')
+    lines.push('*Inbox health:*')
+    for (const row of inboxStats) {
+      const inbox = row.from_email.replace('@usexiq.com', '')
+      const sentCount = Number(row.sent)
+      const openCount = Number(row.opens)
+      const rate = sentCount > 0 ? Math.round((openCount / sentCount) * 100) : 0
+      const sentToday = Number(row.sent_today)
+      lines.push(`  • *${inbox}@* — ${sentToday} sent today, ${rate}% open rate (${openCount}/${sentCount} all-time)`)
+    }
   }
   await post([divider(), text(lines.join('\n'))])
 }

@@ -161,15 +161,6 @@ async function runDailySend() {
       VALUES (${contact.id}, 'email', ${`Outbound email ${seq.step + 1}/3 sent: "${email.subject}"`})
     `
 
-    await notifySent({
-      to: contact.email,
-      name: contact.name,
-      school: school.name,
-      step: seq.step + 1,
-      subject: email.subject,
-      fromEmail,
-    })
-
     sent++
     console.log(`  Sent from ${fromEmail} — "${email.subject}"`)
 

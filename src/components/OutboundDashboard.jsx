@@ -32,7 +32,7 @@ export default function OutboundDashboard() {
   const [error, setError] = useState('')
 
   const load = useCallback(async () => {
-    const res = await fetch('/api/outbound-stats')
+    const res = await fetch('/api/outbound')
     if (!res.ok) throw new Error('Failed to load outbound stats')
     return res.json()
   }, [])

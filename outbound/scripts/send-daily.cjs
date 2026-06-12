@@ -107,7 +107,7 @@ async function runDailySend() {
     // Send via Gmail
     const fromEmail = seq.from_email || pickInbox(seq.id)
     const emailId = randomUUID()
-    const trackingPixelUrl = `${BASE_URL}/api/track-open?id=${emailId}`
+    const trackingPixelUrl = `${BASE_URL}/api/outbound?track=1&id=${emailId}`
     let gmailResult
     try {
       gmailResult = await sendEmail({

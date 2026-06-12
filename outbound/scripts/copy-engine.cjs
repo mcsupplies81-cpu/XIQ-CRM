@@ -16,13 +16,15 @@ All in one system. Change one play and it updates everywhere.
 
 Core problem it solves: Coaches juggle Google Sheets for the playbook, PowerPoint for the call sheet, hand-typed scripts, and wristbands built in Word at midnight before game day. None of it talks to each other.
 
-Real value: Instead of QC analysts, graduate assistants, and coaches spending hours rebuilding the same documents every week, they could be in the film room breaking down tendencies, drawing up more plays, running extra self-scout.
-
 Why they win: Nobody else connects inventory to game plan to practice script to wristband in one football-native system. Hudl draws plays. XO draws plays. Nobody does the full ops stack.
 
 Website: getxiq.com
 Demo ask: 15 minutes
 `
+
+const HS_STAFF_CONTEXT = `Staff framing for HIGH SCHOOL: HS programs do NOT have QC analysts, graduate assistants, or GAs. It's the head coach, OC, and a few assistants doing everything. Use "you and your staff", "you and your coaches" — frame it as their own time being consumed, not a support staff problem.`
+
+const COLLEGE_STAFF_CONTEXT = `Staff framing for COLLEGE: reference QC analysts, graduate assistants, GAs, quality control staff — these roles exist. "Your QC guys and GAs could be in the film room breaking down tendencies instead of rebuilding documents."`
 
 const SOCIAL_PROOF_HS = `Programs from high school to Power Four are running it, including teams in the SEC and Big 12.`
 const SOCIAL_PROOF_COLLEGE = `Programs at Alabama, Baylor, Hawaii, Nevada, and Sac State are running it.`
@@ -35,22 +37,23 @@ You are writing a cold outreach email from Cameron at XIQ to ${contact.name}, ${
 
 ${PRODUCT_CONTEXT}
 
-Research bundle (use specific facts from this — do not invent):
+${isCollege ? COLLEGE_STAFF_CONTEXT : HS_STAFF_CONTEXT}
+
+Research bundle — if record, ranking, or enrollment data is present, open with it. Do not invent facts:
 ${JSON.stringify(research, null, 2)}
 
-Social proof to weave in naturally (one line, not a list):
+Social proof (one line, woven in naturally):
 ${isCollege ? SOCIAL_PROOF_COLLEGE : SOCIAL_PROOF_HS}
 
-Rules — these are hard constraints, not suggestions:
+Rules — hard constraints:
 - NEVER use em dashes (—). Use commas or periods instead.
 - No slop: no "hope you're doing well", "i wanted to reach out", "just following up", "congrats on a great season", "as a coach", etc.
-- Do NOT pitch the product in the first sentence. Lead with something specific about their program.
-- Any score or stat you mention must be from the research bundle. Do not invent.
-- Max 150 words. Short is better.
+- Do NOT pitch the product in the first sentence. Lead with something specific about their program or the problem.
+- Any score, record, or stat you mention must come from the research bundle above. Do not invent.
+- Max 150 words. Shorter is better.
 - One clear ask at the end: "Worth 15 minutes?" or similar. One question only.
 - Sign off: Cameron / XIQ (two lines, nothing else)
-- ${isCollege ? 'This is a college program. Never mention high schools or JV/varsity levels.' : ''}
-- Staff time angle: the opportunity cost is not "saves time" — it is coaches and GAs could be in the film room breaking down tendencies instead of building wristbands in Word at midnight.
+- ${isCollege ? 'College program. Never mention high schools or JV/varsity.' : 'High school program. Never reference QC analysts, GAs, or graduate assistants — those are college roles.'}
 
 Write the subject line on the first line (no "Subject:" prefix), then a blank line, then the email body.
 `,

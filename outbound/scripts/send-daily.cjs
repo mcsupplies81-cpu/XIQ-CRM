@@ -47,7 +47,8 @@ async function runDailySend() {
       s.name as school_name,
       s.state as school_state,
       s.level as school_level,
-      s.notes as school_notes
+      s.notes as school_notes,
+      s.maxpreps_url as school_maxpreps_url
     FROM outbound_sequences os
     JOIN contacts c ON c.id = os.contact_id
     JOIN schools s ON s.id = c.school_id
@@ -80,6 +81,7 @@ async function runDailySend() {
       state: seq.school_state,
       level: seq.school_level,
       notes: seq.school_notes,
+      maxpreps_url: seq.school_maxpreps_url,
     }
 
     console.log(`${contact.name} (${school.name}) — step ${seq.step}`)

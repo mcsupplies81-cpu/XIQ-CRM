@@ -78,12 +78,30 @@ async function scrapeCollegeProgram(schoolName, athleticsDomain) {
   }
 }
 
+// Scrape a known MaxPreps schedule/profile page
+async function scrapeMaxPrepsUrl(url) {
+  try {
+    // Convert schedule URL to team page for richer data
+    const teamUrl = url.replace(/\/schedule\/?$/, '')
+    const html = await fetchHtml(teamUrl)
+    const record = extractText(html, /(\d+)-(\d+)(?:-(\d+))?\s*(?:overall)?/i)
+    const ranking = extractText(html, /(?:ranked?|state rank|#)\s*(\d+)/i)
+    const enrollment = extractText(html, /enrollment[:\s]+([0-9,]+)/i)
+    return {
+      record: record || null,
+      ranking: ranking ? `#${ranking}` : null,
+      enrollment: enrollment || null,
+    }
+  } catch {
+    return { record: null, ranking: null, enrollment: null }
+  }
+}
+
 // Main entry — returns a research bundle for a contact
 async function getResearch(contact, school) {
   const isCollege = ['FCS', 'FBS', 'D1', 'D2', 'D3', 'NAIA', 'JUCO'].includes(school.level)
 
   if (isCollege) {
-    // Use what we know from the DB + any cached data
     return {
       type: 'college',
       schoolName: school.name,
@@ -91,13 +109,19 @@ async function getResearch(contact, school) {
       level: school.level,
       coachName: contact.name,
       role: contact.role,
-      // These get enriched manually or from a college DB
       notes: school.notes || '',
     }
   }
 
-  // High school: MaxPreps
-  const data = await scrapeMaxPreps(school.name, school.state)
+  // High school: use stored MaxPreps URL if available, else fall back to search
+  let data = { record: null, ranking: null, enrollment: null }
+  if (school.maxpreps_url) {
+    data = await scrapeMaxPrepsUrl(school.maxpreps_url)
+  } else {
+    const scraped = await scrapeMaxPreps(school.name, school.state)
+    data = { record: scraped.record, ranking: scraped.ranking, enrollment: scraped.enrollment }
+  }
+
   return {
     type: 'highschool',
     schoolName: school.name,
@@ -107,8 +131,6 @@ async function getResearch(contact, school) {
     record: data.record,
     ranking: data.ranking,
     enrollment: data.enrollment,
-    raw: data.raw || '',
-    error: data.error || null,
   }
 }
 

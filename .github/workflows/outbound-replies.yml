@@ -1,0 +1,31 @@
+name: Outbound — Reply Detector
+
+on:
+  schedule:
+    # Every 3 hours on weekdays
+    - cron: '0 12,15,18,21 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Run reply detector
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OUTBOUND_INBOXES: ${{ secrets.OUTBOUND_INBOXES }}
+          GMAIL_REFRESH_TOKEN_CAMERON_USEXIQ_COM: ${{ secrets.GMAIL_REFRESH_TOKEN_CAMERON_USEXIQ_COM }}
+          GMAIL_REFRESH_TOKEN_CM_USEXIQ_COM: ${{ secrets.GMAIL_REFRESH_TOKEN_CM_USEXIQ_COM }}
+          GMAIL_REFRESH_TOKEN_CAM_USEXIQ_COM: ${{ secrets.GMAIL_REFRESH_TOKEN_CAM_USEXIQ_COM }}
+          SLACK_OUTBOUND_WEBHOOK: ${{ secrets.SLACK_OUTBOUND_WEBHOOK }}
+        run: node outbound/scripts/reply-detector.cjs

@@ -1,0 +1,15 @@
+// Deepline enrich compiled config.
+// This file stores the concrete commands that ran.
+{
+  "version": 1,
+  "commands": [
+    {
+      "alias": "email_status",
+      "tool": "hunter_email_verifier",
+      "operation": "hunter_email_verifier",
+      "payload": {
+        "email": "{{AD Email}}"
+      }
+    }
+  ]
+}

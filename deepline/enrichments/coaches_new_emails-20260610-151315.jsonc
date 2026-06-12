@@ -1,0 +1,122 @@
+// Deepline enrich compiled config.
+// This file stores the concrete commands that ran.
+// Expanded from Deepline native play.
+// tool: person_name_domain_to_phone
+// original alias: cell_phone
+{
+  "version": 1,
+  "commands": [
+    {
+      "with_waterfall": "cell_phone__linkedin_url",
+      "commands": [
+        {
+          "alias": "cell_phone__linkedin_url__apollo_linkedin_people_search",
+          "tool": "apollo_search_people",
+          "operation": "apollo_search_people",
+          "payload": {
+            "q_keywords": "{{first_name}} {{last_name}}",
+            "q_organization_domains_list": [
+              "{{domain}}"
+            ],
+            "page": 1,
+            "per_page": 5
+          },
+          "extract_js": "(output_data,row)=>{const normalize=(value)=>String(value||\"\").toLowerCase().trim().replace(/[^a-z0-9.]+/g,\" \");const normalizeDomain=(value)=>String(value||\"\").toLowerCase().trim().replace(/^https?:\\/\\//,\"\").replace(/^www\\./,\"\").split(\"/\")[0];const first=normalize(row&&row.first_name);const last=normalize(row&&row.last_name);const expectedDomain=normalizeDomain(row&&(row.domain||row.company_domain));const expectedCompany=normalize(row&&row.company_name);const rows=[];try{rows.push(...extractList(\"apollo_search_people\", output_data, { keys: [\"linkedin\",\"full_name\",\"first_name\",\"last_name\",\"title\"] }));}catch{}const firstToken=first.split(\" \")[0]||first;const lastToken=last.split(\" \").filter(Boolean).slice(-1)[0]||last;const scored=rows.filter((candidate)=>candidate&&typeof candidate===\"object\").map((candidate,index)=>{let linkedin=Array.isArray(candidate.linkedin)?candidate.linkedin[0]:candidate.linkedin;if(typeof linkedin!==\"string\"||!linkedin.includes(\"linkedin.com/in/\"))return null;linkedin=linkedin.trim();if(linkedin.startsWith(\"linkedin.com/\"))linkedin=\"https://www.\"+linkedin;if(linkedin.startsWith(\"www.linkedin.com/\"))linkedin=\"https://\"+linkedin;const full=normalize(candidate.full_name);const cfirst=normalize(candidate.first_name);const clast=normalize(candidate.last_name);const slug=normalize(linkedin.split(\"/in/\")[1]||\"\");const company=normalize(candidate.company_name||candidate.company);const domain=normalizeDomain(candidate.company_domain||candidate.domain||candidate.company_website);let score=0;if(firstToken&&(full.includes(firstToken)||cfirst.includes(firstToken)||slug.includes(firstToken)))score+=16;if(lastToken&&(full.includes(lastToken)||clast.includes(lastToken)||slug.includes(lastToken)))score+=22;if(expectedDomain&&domain&&(domain===expectedDomain||domain.endsWith(\".\"+expectedDomain)))score+=18;if(expectedCompany&&company&&(company.includes(expectedCompany)||expectedCompany.includes(company)))score+=10;if(candidate.title)score+=2;return {linkedin,score,index};}).filter(Boolean).filter((entry)=>entry.score>=30).sort((a,b)=>b.score-a.score||a.index-b.index);return scored[0]&&scored[0].linkedin||null;}"
+        },
+        {
+          "alias": "cell_phone__linkedin_url__dropleads_linkedin_search",
+          "tool": "dropleads_search_people",
+          "operation": "dropleads_search_people",
+          "payload": {
+            "filters": {
+              "companyDomains": [
+                "{{domain}}"
+              ],
+              "keywords": [
+                "{{first_name}}",
+                "{{last_name}}"
+              ]
+            },
+            "pagination": {
+              "page": 1,
+              "limit": 5
+            }
+          },
+          "extract_js": "(output_data,row)=>{const normalize=(value)=>String(value||\"\").toLowerCase().trim().replace(/[^a-z0-9.]+/g,\" \");const normalizeDomain=(value)=>String(value||\"\").toLowerCase().trim().replace(/^https?:\\/\\//,\"\").replace(/^www\\./,\"\").split(\"/\")[0];const first=normalize(row&&row.first_name);const last=normalize(row&&row.last_name);const expectedDomain=normalizeDomain(row&&(row.domain||row.company_domain));const expectedCompany=normalize(row&&row.company_name);const rows=[];try{rows.push(...extractList(\"dropleads_search_people\", output_data, { keys: [\"linkedin\",\"full_name\",\"first_name\",\"last_name\",\"title\",\"company_name\",\"company_domain\"] }));}catch{}const firstToken=first.split(\" \")[0]||first;const lastToken=last.split(\" \").filter(Boolean).slice(-1)[0]||last;const scored=rows.filter((candidate)=>candidate&&typeof candidate===\"object\").map((candidate,index)=>{let linkedin=Array.isArray(candidate.linkedin)?candidate.linkedin[0]:candidate.linkedin;if(typeof linkedin!==\"string\"||!linkedin.includes(\"linkedin.com/in/\"))return null;linkedin=linkedin.trim();if(linkedin.startsWith(\"linkedin.com/\"))linkedin=\"https://www.\"+linkedin;if(linkedin.startsWith(\"www.linkedin.com/\"))linkedin=\"https://\"+linkedin;const full=normalize(candidate.full_name);const cfirst=normalize(candidate.first_name);const clast=normalize(candidate.last_name);const slug=normalize(linkedin.split(\"/in/\")[1]||\"\");const company=normalize(candidate.company_name||candidate.company);const domain=normalizeDomain(candidate.company_domain||candidate.domain||candidate.company_website);let score=0;if(firstToken&&(full.includes(firstToken)||cfirst.includes(firstToken)||slug.includes(firstToken)))score+=16;if(lastToken&&(full.includes(lastToken)||clast.includes(lastToken)||slug.includes(lastToken)))score+=22;if(expectedDomain&&domain&&(domain===expectedDomain||domain.endsWith(\".\"+expectedDomain)))score+=18;if(expectedCompany&&company&&(company.includes(expectedCompany)||expectedCompany.includes(company)))score+=10;if(candidate.title)score+=2;return {linkedin,score,index};}).filter(Boolean).filter((entry)=>entry.score>=30).sort((a,b)=>b.score-a.score||a.index-b.index);return scored[0]&&scored[0].linkedin||null;}"
+        },
+        {
+          "alias": "cell_phone__linkedin_url__serper_linkedin_search_domain",
+          "tool": "serper_google_search",
+          "operation": "serper_google_search",
+          "payload": {
+            "query": "site:linkedin.com/in \"{{first_name}} {{last_name}}\" \"{{domain}}\"",
+            "num": 10
+          },
+          "extract_js": "(output_data)=>extract(\"serper_google_search\", output_data, \"linkedin\")"
+        },
+        {
+          "alias": "cell_phone__linkedin_url__prospeo_enrich_person_linkedin",
+          "tool": "prospeo_enrich_person",
+          "operation": "prospeo_enrich_person",
+          "payload": {
+            "first_name": "{{first_name}}",
+            "last_name": "{{last_name}}",
+            "full_name": "{{first_name}} {{last_name}}",
+            "domain": "{{domain}}"
+          },
+          "extract_js": "(output_data,row)=>{const normalize=(value)=>String(value||\"\").toLowerCase().trim().replace(/[^a-z0-9.]+/g,\" \");const normalizeDomain=(value)=>String(value||\"\").toLowerCase().trim().replace(/^https?:\\/\\//,\"\").replace(/^www\\./,\"\").split(\"/\")[0];const first=normalize(row&&row.first_name);const last=normalize(row&&row.last_name);const expectedDomain=normalizeDomain(row&&(row.domain||row.company_domain));const expectedCompany=normalize(row&&row.company_name);const rows=[];try{rows.push(...extractList(\"prospeo_enrich_person\", output_data, { keys: [\"linkedin\",\"full_name\",\"first_name\",\"last_name\",\"title\",\"company\",\"company_domain\"] }));}catch{}const firstToken=first.split(\" \")[0]||first;const lastToken=last.split(\" \").filter(Boolean).slice(-1)[0]||last;const scored=rows.filter((candidate)=>candidate&&typeof candidate===\"object\").map((candidate,index)=>{let linkedin=Array.isArray(candidate.linkedin)?candidate.linkedin[0]:candidate.linkedin;if(typeof linkedin!==\"string\"||!linkedin.includes(\"linkedin.com/in/\"))return null;linkedin=linkedin.trim();if(linkedin.startsWith(\"linkedin.com/\"))linkedin=\"https://www.\"+linkedin;if(linkedin.startsWith(\"www.linkedin.com/\"))linkedin=\"https://\"+linkedin;const full=normalize(candidate.full_name);const cfirst=normalize(candidate.first_name);const clast=normalize(candidate.last_name);const slug=normalize(linkedin.split(\"/in/\")[1]||\"\");const company=normalize(candidate.company_name||candidate.company);const domain=normalizeDomain(candidate.company_domain||candidate.domain||candidate.company_website);let score=0;if(firstToken&&(full.includes(firstToken)||cfirst.includes(firstToken)||slug.includes(firstToken)))score+=16;if(lastToken&&(full.includes(lastToken)||clast.includes(lastToken)||slug.includes(lastToken)))score+=22;if(expectedDomain&&domain&&(domain===expectedDomain||domain.endsWith(\".\"+expectedDomain)))score+=18;if(expectedCompany&&company&&(company.includes(expectedCompany)||expectedCompany.includes(company)))score+=10;if(candidate.title)score+=2;return {linkedin,score,index};}).filter(Boolean).filter((entry)=>entry.score>=30).sort((a,b)=>b.score-a.score||a.index-b.index);return scored[0]&&scored[0].linkedin||null;}"
+        }
+      ]
+    },
+    {
+      "alias": "cell_phone__serper_linkedin_identity_validate",
+      "tool": "serper_google_search",
+      "operation": "serper_google_search",
+      "payload": {
+        "query": "\"{{first_name}} {{last_name}}\" \"{{domain}}\" site:linkedin.com/in",
+        "num": 5
+      },
+      "extract_js": "(output_data,row)=>{const url=String(row&&row[\"linkedin_url\"]||\"\").trim();if(!url)return null;const first=String(row.first_name||\"\").toLowerCase().trim();const last=String(row.last_name||\"\").toLowerCase().trim();if(!last)return null;const normalize=(value)=>String(value||\"\").toLowerCase().replace(/^https?:\\/\\/(www\\.)?/,\"\").replace(/\\?.*$/,\"\").replace(/\\/$/,\"\");const resolved=normalize(url);const organic=(output_data&&output_data.data&&output_data.data.organic)||[];const confirmed=organic.some((result)=>{const link=normalize(result.link||result.url);const title=String(result.title||\"\").toLowerCase();const sameUrl=Boolean(link)&&(link===resolved||link.startsWith(resolved)||resolved.startsWith(link));const lastOk=title.includes(last);const firstOk=first.length<=1||title.includes(first);return sameUrl&&lastOk&&firstOk;});return confirmed?url:null;}",
+      "run_if_js": "(row)=>{const url=row[\"linkedin_url\"];return typeof url===\"string\"&&url.trim().length>0;}"
+    },
+    {
+      "with_waterfall": "cell_phone",
+      "commands": [
+        {
+          "alias": "cell_phone__leadmagic_mobile",
+          "tool": "leadmagic_mobile_finder",
+          "operation": "leadmagic_mobile_finder",
+          "payload": {
+            "profile_url": "{{cell_phone__linkedin_url}}"
+          },
+          "extract_js": "(output_data)=>extract(\"leadmagic_mobile_finder\", output_data, \"phone\")",
+          "run_if_js": "const __dlGetByPath=(obj,path)=>String(path||'').replace(/\\[(\\d+)\\]/g,'.$1').split('.').filter(Boolean).reduce((cur,key)=>{if(cur==null)return undefined;if(cur&&typeof cur==='object'){if(key in cur)return cur[key];const data=cur.data;if(data&&typeof data==='object'&&key in data)return data[key];}return undefined;},obj);const __dlMeaningful=(value)=>{if(value&&typeof value==='object'&&!Array.isArray(value)&&'data'in value)return __dlMeaningful(value.data);return value!==null&&value!==undefined&&!(typeof value==='string'&&value.trim()==='');};if (![\"cell_phone__linkedin_url\"].every((path)=>__dlMeaningful(__dlGetByPath(row,path)))) return false;return true;"
+        },
+        {
+          "alias": "cell_phone__wiza_phone",
+          "tool": "wiza_reveal_person",
+          "operation": "wiza_reveal_person",
+          "payload": {
+            "linkedin_url": "{{cell_phone__linkedin_url}}",
+            "enrichment_level": "phone"
+          },
+          "extract_js": "(output_data)=>extract(\"wiza_reveal_person\", output_data, \"phone\")",
+          "run_if_js": "const __dlGetByPath=(obj,path)=>String(path||'').replace(/\\[(\\d+)\\]/g,'.$1').split('.').filter(Boolean).reduce((cur,key)=>{if(cur==null)return undefined;if(cur&&typeof cur==='object'){if(key in cur)return cur[key];const data=cur.data;if(data&&typeof data==='object'&&key in data)return data[key];}return undefined;},obj);const __dlMeaningful=(value)=>{if(value&&typeof value==='object'&&!Array.isArray(value)&&'data'in value)return __dlMeaningful(value.data);return value!==null&&value!==undefined&&!(typeof value==='string'&&value.trim()==='');};if (![\"cell_phone__linkedin_url\"].every((path)=>__dlMeaningful(__dlGetByPath(row,path)))) return false;return true;"
+        },
+        {
+          "alias": "cell_phone__native_phone",
+          "tool": "deepline_native_enrich_phone",
+          "operation": "enrich_phone",
+          "payload": {
+            "linkedin": "{{cell_phone__linkedin_url}}",
+            "first_name": "{{first_name}}",
+            "last_name": "{{last_name}}",
+            "domain": "{{domain}}"
+          },
+          "extract_js": "(output_data)=>extract(\"deepline_native_enrich_phone\", output_data, \"phone\")",
+          "run_if_js": "const __dlGetByPath=(obj,path)=>String(path||'').replace(/\\[(\\d+)\\]/g,'.$1').split('.').filter(Boolean).reduce((cur,key)=>{if(cur==null)return undefined;if(cur&&typeof cur==='object'){if(key in cur)return cur[key];const data=cur.data;if(data&&typeof data==='object'&&key in data)return data[key];}return undefined;},obj);const __dlMeaningful=(value)=>{if(value&&typeof value==='object'&&!Array.isArray(value)&&'data'in value)return __dlMeaningful(value.data);return value!==null&&value!==undefined&&!(typeof value==='string'&&value.trim()==='');};if (![\"cell_phone__linkedin_url\",\"first_name\",\"last_name\",\"domain\"].every((path)=>__dlMeaningful(__dlGetByPath(row,path)))) return false;return true;"
+        }
+      ]
+    }
+  ]
+}

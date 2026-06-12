@@ -1,0 +1,15 @@
+// Deepline enrich compiled config.
+// This file stores the concrete commands that ran.
+{
+  "version": 1,
+  "commands": [
+    {
+      "alias": "cell_phone",
+      "tool": "leadmagic_mobile_finder",
+      "operation": "leadmagic_mobile_finder",
+      "payload": {
+        "work_email": "{{Coach Email}}"
+      }
+    }
+  ]
+}

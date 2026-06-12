@@ -1,0 +1,165 @@
+// Deepline enrich compiled config.
+// This file stores the concrete commands that ran.
+// Expanded from Deepline native play.
+// tool: person_name_company_to_email
+// original alias: email
+{
+  "version": 1,
+  "commands": [
+    {
+      "with_waterfall": "email__person_name_company_to_email_resolved_domain",
+      "commands": [
+        {
+          "alias": "email__person_name_company_to_email_resolved_domain__person_name_company_to_email_resolved_domain_exa",
+          "tool": "exa_company_search",
+          "operation": "exa_company_search",
+          "payload": {
+            "query": "\"{{School}}\" official company website",
+            "type": "auto",
+            "numResults": 5
+          },
+          "extract_js": "(output_data)=>{const payload=output_data&&output_data.data?output_data.data:output_data;const results=payload.results||[];const blocked=[\"linkedin.com\",\"wikipedia.org\",\"x.com\",\"twitter.com\",\"facebook.com\",\"instagram.com\",\"crunchbase.com\",\"pitchbook.com\",\"bloomberg.com\",\"apollo.io\",\"zoominfo.com\"];const root=(host)=>{const parts=String(host||\"\").toLowerCase().replace(/^www\\./,\"\").split(\".\").filter(Boolean);if(parts.length<=2)return parts.join(\".\");const tail=parts.slice(-2);const second=tail[0]||\"\";const top=tail[1]||\"\";const hasSecondLevel=top.length===2&&[\"co\",\"com\",\"org\",\"net\",\"ac\",\"gov\"].includes(second);return parts.slice(hasSecondLevel?-3:-2).join(\".\");};const hostFrom=(value)=>{const raw=String(value||\"\").trim();if(!raw)return null;const withoutScheme=raw.replace(/^https?:\\/\\//i,\"\").replace(/^\\/\\//,\"\");const host=withoutScheme.split(/[\\/?#]/,1)[0].split(\":\",1)[0];return host?root(host):null;};const valuesFrom=(result)=>[result&&result.url,result&&result.link,result&&result.website,result&&result.domain,result&&result.primary_domain,result&&result.company_domain,result&&result.company_website,result&&result.company&&result.company.website,result&&result.company&&result.company.domain,result&&result.company&&result.company.primary_domain];for(const result of Array.isArray(results)?results:[]){for(const value of valuesFrom(result)){const host=hostFrom(value);if(host&&!blocked.includes(host))return host;}}return null;}"
+        },
+        {
+          "alias": "email__person_name_company_to_email_resolved_domain__person_name_company_to_email_resolved_domain_serper",
+          "tool": "serper_google_search",
+          "operation": "serper_google_search",
+          "payload": {
+            "query": "\"{{School}}\" official website company",
+            "gl": "us",
+            "hl": "en",
+            "num": 5,
+            "autocorrect": false
+          },
+          "extract_js": "(output_data)=>{const payload=output_data&&output_data.data?output_data.data:output_data;const results=payload.organic||[];const blocked=[\"linkedin.com\",\"wikipedia.org\",\"x.com\",\"twitter.com\",\"facebook.com\",\"instagram.com\",\"crunchbase.com\",\"pitchbook.com\",\"bloomberg.com\",\"apollo.io\",\"zoominfo.com\"];const root=(host)=>{const parts=String(host||\"\").toLowerCase().replace(/^www\\./,\"\").split(\".\").filter(Boolean);if(parts.length<=2)return parts.join(\".\");const tail=parts.slice(-2);const second=tail[0]||\"\";const top=tail[1]||\"\";const hasSecondLevel=top.length===2&&[\"co\",\"com\",\"org\",\"net\",\"ac\",\"gov\"].includes(second);return parts.slice(hasSecondLevel?-3:-2).join(\".\");};const hostFrom=(value)=>{const raw=String(value||\"\").trim();if(!raw)return null;const withoutScheme=raw.replace(/^https?:\\/\\//i,\"\").replace(/^\\/\\//,\"\");const host=withoutScheme.split(/[\\/?#]/,1)[0].split(\":\",1)[0];return host?root(host):null;};const valuesFrom=(result)=>[result&&result.url,result&&result.link,result&&result.website,result&&result.domain,result&&result.primary_domain,result&&result.company_domain,result&&result.company_website,result&&result.company&&result.company.website,result&&result.company&&result.company.domain,result&&result.company&&result.company.primary_domain];for(const result of Array.isArray(results)?results:[]){for(const value of valuesFrom(result)){const host=hostFrom(value);if(host&&!blocked.includes(host))return host;}}return null;}"
+        },
+        {
+          "alias": "email__person_name_company_to_email_resolved_domain__person_name_company_to_email_resolved_domain_prospeo",
+          "tool": "prospeo_search_company",
+          "operation": "prospeo_search_company",
+          "payload": {
+            "company": {
+              "names": {
+                "include": [
+                  "{{School}}"
+                ]
+              }
+            },
+            "page": 1
+          },
+          "extract_js": "(output_data)=>{const payload=output_data&&output_data.data?output_data.data:output_data;const results=payload.results||[];const blocked=[\"linkedin.com\",\"wikipedia.org\",\"x.com\",\"twitter.com\",\"facebook.com\",\"instagram.com\",\"crunchbase.com\",\"pitchbook.com\",\"bloomberg.com\",\"apollo.io\",\"zoominfo.com\"];const root=(host)=>{const parts=String(host||\"\").toLowerCase().replace(/^www\\./,\"\").split(\".\").filter(Boolean);if(parts.length<=2)return parts.join(\".\");const tail=parts.slice(-2);const second=tail[0]||\"\";const top=tail[1]||\"\";const hasSecondLevel=top.length===2&&[\"co\",\"com\",\"org\",\"net\",\"ac\",\"gov\"].includes(second);return parts.slice(hasSecondLevel?-3:-2).join(\".\");};const hostFrom=(value)=>{const raw=String(value||\"\").trim();if(!raw)return null;const withoutScheme=raw.replace(/^https?:\\/\\//i,\"\").replace(/^\\/\\//,\"\");const host=withoutScheme.split(/[\\/?#]/,1)[0].split(\":\",1)[0];return host?root(host):null;};const valuesFrom=(result)=>[result&&result.url,result&&result.link,result&&result.website,result&&result.domain,result&&result.primary_domain,result&&result.company_domain,result&&result.company_website,result&&result.company&&result.company.website,result&&result.company&&result.company.domain,result&&result.company&&result.company.primary_domain];for(const result of Array.isArray(results)?results:[]){for(const value of valuesFrom(result)){const host=hostFrom(value);if(host&&!blocked.includes(host))return host;}}return null;}"
+        }
+      ]
+    },
+    {
+      "with_waterfall": "email",
+      "commands": [
+        {
+          "alias": "email__pattern_first_at",
+          "tool": "leadmagic_email_validation",
+          "operation": "leadmagic_email_validation",
+          "payload": {
+            "email": "{{first_name}}@{{email__person_name_company_to_email_resolved_domain}}"
+          },
+          "extract_js": "(output_data)=>{const email=extract(\"leadmagic_email_validation\", output_data, \"email\");const readStatus=(value)=>{if(value&&typeof value==='object')return String(value.status??value.verdict??'').toLowerCase();return String(value??'').toLowerCase();};const status=readStatus(get('email_status')??get('status'));return email&&status==='valid'?email:null;}",
+          "run_if_js": "return false;"
+        },
+        {
+          "alias": "email__pattern_first_dot_last",
+          "tool": "leadmagic_email_validation",
+          "operation": "leadmagic_email_validation",
+          "payload": {
+            "email": "{{first_name}}.{{last_name}}@{{email__person_name_company_to_email_resolved_domain}}"
+          },
+          "extract_js": "(output_data)=>{const email=extract(\"leadmagic_email_validation\", output_data, \"email\");const readStatus=(value)=>{if(value&&typeof value==='object')return String(value.status??value.verdict??'').toLowerCase();return String(value??'').toLowerCase();};const status=readStatus(get('email_status')??get('status'));return email&&status==='valid'?email:null;}",
+          "run_if_js": "return false;"
+        },
+        {
+          "alias": "email__pattern_firstlast",
+          "tool": "leadmagic_email_validation",
+          "operation": "leadmagic_email_validation",
+          "payload": {
+            "email": "{{first_name}}{{last_name}}@{{email__person_name_company_to_email_resolved_domain}}"
+          },
+          "extract_js": "(output_data)=>{const email=extract(\"leadmagic_email_validation\", output_data, \"email\");const readStatus=(value)=>{if(value&&typeof value==='object')return String(value.status??value.verdict??'').toLowerCase();return String(value??'').toLowerCase();};const status=readStatus(get('email_status')??get('status'));return email&&status==='valid'?email:null;}",
+          "run_if_js": "return false;"
+        },
+        {
+          "alias": "email__dropleads_email",
+          "tool": "dropleads_email_finder",
+          "operation": "dropleads_email_finder",
+          "payload": {
+            "first_name": "{{first_name}}",
+            "last_name": "{{last_name}}",
+            "company_domain": "{{email__person_name_company_to_email_resolved_domain}}"
+          },
+          "extract_js": "(output_data)=>extract(\"dropleads_email_finder\", output_data, \"email\")",
+          "run_if_js": "const __dlGetByPath=(obj,path)=>String(path||'').replace(/\\[(\\d+)\\]/g,'.$1').split('.').filter(Boolean).reduce((cur,key)=>{if(cur==null)return undefined;if(cur&&typeof cur==='object'){if(key in cur)return cur[key];const data=cur.data;if(data&&typeof data==='object'&&key in data)return data[key];}return undefined;},obj);const __dlMeaningful=(value)=>{if(value&&typeof value==='object'&&!Array.isArray(value)&&'data'in value)return __dlMeaningful(value.data);return value!==null&&value!==undefined&&!(typeof value==='string'&&value.trim()==='');};if (![\"first_name\",\"last_name\",\"email__person_name_company_to_email_resolved_domain\"].every((path)=>__dlMeaningful(__dlGetByPath(row,path)))) return false;return true;"
+        },
+        {
+          "alias": "email__hunter_email",
+          "tool": "hunter_email_finder",
+          "operation": "hunter_email_finder",
+          "payload": {
+            "first_name": "{{first_name}}",
+            "last_name": "{{last_name}}",
+            "domain": "{{email__person_name_company_to_email_resolved_domain}}"
+          },
+          "extract_js": "(output_data)=>extract(\"hunter_email_finder\", output_data, \"email\")",
+          "run_if_js": "const __dlGetByPath=(obj,path)=>String(path||'').replace(/\\[(\\d+)\\]/g,'.$1').split('.').filter(Boolean).reduce((cur,key)=>{if(cur==null)return undefined;if(cur&&typeof cur==='object'){if(key in cur)return cur[key];const data=cur.data;if(data&&typeof data==='object'&&key in data)return data[key];}return undefined;},obj);const __dlMeaningful=(value)=>{if(value&&typeof value==='object'&&!Array.isArray(value)&&'data'in value)return __dlMeaningful(value.data);return value!==null&&value!==undefined&&!(typeof value==='string'&&value.trim()==='');};if (![\"first_name\",\"last_name\",\"email__person_name_company_to_email_resolved_domain\"].every((path)=>__dlMeaningful(__dlGetByPath(row,path)))) return false;return true;"
+        },
+        {
+          "alias": "email__leadmagic_email",
+          "tool": "leadmagic_email_finder",
+          "operation": "leadmagic_email_finder",
+          "payload": {
+            "first_name": "{{first_name}}",
+            "last_name": "{{last_name}}",
+            "domain": "{{email__person_name_company_to_email_resolved_domain}}",
+            "company_domain": "{{email__person_name_company_to_email_resolved_domain}}"
+          },
+          "extract_js": "(output_data)=>extract(\"leadmagic_email_finder\", output_data, \"email\")",
+          "run_if_js": "const __dlGetByPath=(obj,path)=>String(path||'').replace(/\\[(\\d+)\\]/g,'.$1').split('.').filter(Boolean).reduce((cur,key)=>{if(cur==null)return undefined;if(cur&&typeof cur==='object'){if(key in cur)return cur[key];const data=cur.data;if(data&&typeof data==='object'&&key in data)return data[key];}return undefined;},obj);const __dlMeaningful=(value)=>{if(value&&typeof value==='object'&&!Array.isArray(value)&&'data'in value)return __dlMeaningful(value.data);return value!==null&&value!==undefined&&!(typeof value==='string'&&value.trim()==='');};if (![\"first_name\",\"last_name\",\"email__person_name_company_to_email_resolved_domain\"].every((path)=>__dlMeaningful(__dlGetByPath(row,path)))) return false;return true;"
+        },
+        {
+          "alias": "email__icypeas_email",
+          "tool": "icypeas_email_search",
+          "operation": "icypeas_email_search",
+          "payload": {
+            "firstname": "{{first_name}}",
+            "lastname": "{{last_name}}",
+            "domainOrCompany": "{{email__person_name_company_to_email_resolved_domain}}"
+          },
+          "extract_js": "(output_data)=>extract(\"icypeas_email_search\", output_data, \"email\")",
+          "run_if_js": "const __dlGetByPath=(obj,path)=>String(path||'').replace(/\\[(\\d+)\\]/g,'.$1').split('.').filter(Boolean).reduce((cur,key)=>{if(cur==null)return undefined;if(cur&&typeof cur==='object'){if(key in cur)return cur[key];const data=cur.data;if(data&&typeof data==='object'&&key in data)return data[key];}return undefined;},obj);const __dlMeaningful=(value)=>{if(value&&typeof value==='object'&&!Array.isArray(value)&&'data'in value)return __dlMeaningful(value.data);return value!==null&&value!==undefined&&!(typeof value==='string'&&value.trim()==='');};if (![\"first_name\",\"last_name\",\"email__person_name_company_to_email_resolved_domain\"].every((path)=>__dlMeaningful(__dlGetByPath(row,path)))) return false;return true;"
+        },
+        {
+          "alias": "email__wiza_identity_email",
+          "tool": "wiza_reveal_person",
+          "operation": "wiza_reveal_person",
+          "payload": {
+            "first_name": "{{first_name}}",
+            "last_name": "{{last_name}}",
+            "company_name": "{{School}}",
+            "company_domain": "{{email__person_name_company_to_email_resolved_domain}}",
+            "enrichment_level": "partial"
+          },
+          "extract_js": "(output_data)=>extract(\"wiza_reveal_person\", output_data, \"email\")"
+        },
+        {
+          "alias": "email__prospeo_identity_email",
+          "tool": "prospeo_enrich_person",
+          "operation": "prospeo_enrich_person",
+          "payload": {
+            "first_name": "{{first_name}}",
+            "last_name": "{{last_name}}",
+            "company_name": "{{School}}",
+            "company_website": "{{email__person_name_company_to_email_resolved_domain}}",
+            "only_verified_email": true
+          },
+          "extract_js": "(output_data)=>extract(\"prospeo_enrich_person\", output_data, \"email\")"
+        }
+      ]
+    }
+  ]
+}

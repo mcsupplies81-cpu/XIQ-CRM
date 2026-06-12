@@ -13,6 +13,7 @@ import Dashboard from './components/Dashboard.jsx'
 import TemplatesPage from './components/TemplatesPage.jsx'
 import DMQueue from './components/DMQueue.jsx'
 import PlaybookView from './components/PlaybookView.jsx'
+import OutboundDashboard from './components/OutboundDashboard.jsx'
 import CommandPalette from './components/CommandPalette.jsx'
 
 export default function App() {
@@ -54,6 +55,7 @@ export default function App() {
           <Route path="/pipeline" element={<PipelineView />} />
           <Route path="/templates" element={<TemplatesPage />} />
           <Route path="/dms" element={<DMQueue />} />
+          <Route path="/outbound" element={<OutboundDashboard />} />
           <Route path="/playbook" element={<PlaybookView />} />
           <Route path="/import" element={<ImportPage />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

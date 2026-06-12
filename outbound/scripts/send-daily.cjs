@@ -19,8 +19,8 @@ function pickInbox(sequenceId) {
   return INBOXES[n % INBOXES.length]
 }
 
-// Sequence timing: day 1, day 4, day 9
-const STEP_DELAYS = [0, 3, 5] // days after previous send
+// Sequence timing: day 1, day 3, day 6, day 10
+const STEP_DELAYS = [0, 2, 3, 4] // days after previous send
 
 async function runDailySend() {
   if (INBOXES.length === 0) {
@@ -134,7 +134,7 @@ async function runDailySend() {
 
     // Log to DB
     const nextStep = seq.step + 1
-    const hasMoreSteps = nextStep < 3
+    const hasMoreSteps = nextStep < 4
     const nextDelay = STEP_DELAYS[nextStep]
     const nextSend = hasMoreSteps ? new Date(Date.now() + nextDelay * 24 * 60 * 60 * 1000).toISOString() : null
 

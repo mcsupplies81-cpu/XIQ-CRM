@@ -72,7 +72,7 @@ Social proof (one line, woven in naturally):
 ${isCollege ? SOCIAL_PROOF_COLLEGE : SOCIAL_PROOF_HS}
 
 Rules -- hard constraints:
-- SUBJECT LINE: max 6 words. Short, plain, direct. Examples: "game week prep", "quick question", "your call sheet", "before next season". Never put the coach's name, program stats, or a full sentence in the subject. The personalized hook belongs in the body opener, not the subject.
+- SUBJECT LINE: max 6 words. Must include ONE specific fact from the research — a record, coach tenure, program achievement, or ranking. Short and personal, not generic. Good examples: "after 24 years as OC", "Allen's 14-1 run", "12 state titles, one system", "your first season as HC". Bad examples: "game week prep", "the wristband problem" (too generic). Never a full sentence. Never the coach's full name.
 - NEVER use em dashes (—). Use commas or periods.
 - No slop: no "hope you're doing well", "I wanted to reach out", "just following up", "congrats on a great season", "as a coach"
 - Open the body with the most specific thing from the research (coachTenure, coachBackground, record, programHistory) — that personal detail goes HERE, in sentence one of the body.
@@ -179,7 +179,7 @@ async function generateEmail(step, research, contact, school) {
     const output = msg.content[0].text.trim()
     const lines = output.split('\n')
     const subject = lines[0].trim().replace(/^subject:\s*/i, '').replace(/—/g, ',').replace(/ -- /g, ', ')
-    const body = lines.slice(2).join('\n').trim()
+    const body = lines.slice(2).join('\n').trim().replace(/—/g, ',').replace(/ -- /g, ', ')
 
     if (subject.split(/\s+/).length > 8) {
       console.log(`  Attempt ${attempt} failed: subject too long (${subject.split(/\s+/).length} words)`)

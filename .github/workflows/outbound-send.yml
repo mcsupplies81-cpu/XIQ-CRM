@@ -29,4 +29,6 @@ jobs:
           GMAIL_REFRESH_TOKEN_CAM_USEXIQ_COM: ${{ secrets.GMAIL_REFRESH_TOKEN_CAM_USEXIQ_COM }}
           SLACK_OUTBOUND_WEBHOOK: ${{ secrets.SLACK_OUTBOUND_WEBHOOK }}
           BRAVE_SEARCH_API_KEY: ${{ secrets.BRAVE_SEARCH_API_KEY }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         run: node outbound/scripts/send-daily.cjs

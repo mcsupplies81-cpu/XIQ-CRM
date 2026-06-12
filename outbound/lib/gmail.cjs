@@ -6,9 +6,11 @@ const { google } = require('googleapis')
 const path = require('path')
 const fs = require('fs')
 
-const SECRET_PATH = path.join(__dirname, '../client_secret.json')
-
 function getClientCredentials() {
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    return { clientId: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET }
+  }
+  const SECRET_PATH = path.join(__dirname, '../client_secret.json')
   const raw = JSON.parse(fs.readFileSync(SECRET_PATH, 'utf8'))
   const creds = raw.installed || raw.web
   return { clientId: creds.client_id, clientSecret: creds.client_secret }
